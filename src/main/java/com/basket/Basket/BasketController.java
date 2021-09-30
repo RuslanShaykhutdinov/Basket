@@ -50,11 +50,8 @@ public class BasketController {
     ){
         Optional<User> currentUser = userRepo.findById(userId);
         if(currentUser.isPresent()){
-            User user = currentUser.get();
-            String userName = user.getName();
-            log.info("Пользователь " + userName + " найден в базе данных!");
-            basketRepo.save(new Basket(user,new LinkedList<>()));
-            return new ResponseEntity<>("Пользователь " + userName + " успешно вошел в приложение", HttpStatus.OK);
+            basketService.signing(currentUser);
+            return new ResponseEntity<>("Пользователь " + currentUser.get().getName() + " успешно вошел в приложение", HttpStatus.OK);
         } else {
             log.error("Пользователь с таким " + userId + "не найден");
             return new ResponseEntity<>("Не удалось войти в аккаунт",HttpStatus.BAD_REQUEST);
@@ -67,34 +64,12 @@ public class BasketController {
     private ResponseEntity<String> addItemToBasket(
             @PathVariable(name = "id") Long productId ,
             @PathVariable(name = "user_id") Long userId,
-            @PathVariable Integer weight){
-
-        Product chosenProduct = basketService.checkWeight(productId,weight);
+            @PathVariable Integer weight
+    ){
         Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
         if(optionalBasket.isPresent()){
             Basket basket = optionalBasket.get();
-            if(chosenProduct.getName().equals("Alcohol") && basket.getUser().getAge() <= 21){
-                log.info("Товар не разрешен!");
-                return new ResponseEntity<>("Товар не разрешен!",HttpStatus.BAD_GATEWAY);
-            }
-            if(chosenProduct.getAvailability()){
-                HashMap<List<Long>, Integer> map = basketRepo.map;
-                List<Long> key = Arrays.asList(userId,productId);
-                if(map.containsKey(key)){
-                    map.put(key,map.get(key) + weight);
-                    log.info(map.entrySet().toString());
-                    return new ResponseEntity<>(chosenProduct.getName() + " успешно приумножен!",HttpStatus.OK);
-                } else {
-                    map.put(new ArrayList<>(Arrays.asList(userId,productId)),weight);
-                    basket.getProductList().add(chosenProduct);
-                    basketRepo.save(basket);
-                    log.info(map.entrySet().toString());
-                    return new ResponseEntity<>(chosenProduct.getName() + " успешно добавлен в вашу корзину!",HttpStatus.OK);
-                }
-            } else {
-                log.error("Товар закончился!");
-                return new ResponseEntity<>("Товар закончился!",HttpStatus.BAD_REQUEST);
-            }
+            return basketService.adding(productId,weight,basket);
         } else {
             log.error("Вы ввели неправильный user_id " + userId);
             return new ResponseEntity<>("Вы ввели неправильный user_id " + userId,HttpStatus.BAD_REQUEST);
@@ -109,22 +84,7 @@ public class BasketController {
         Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
         if(optionalBasket.isPresent()){
             Basket basket = optionalBasket.get();
-            if(!basket.getProductList().isEmpty()){
-                StringBuilder s = new StringBuilder();
-                int sum = 0;
-                for (Product product: basket.getProductList()) {
-                    Integer weight = basketRepo.map.get(Arrays.asList(userId, product.getProductId()));
-                    Integer objSum = product.getPrice() * weight;
-                    s.append("\n").append(product.getName()).append(" ").append(objSum);
-                    sum += objSum;
-                }
-                s.append("\t").append(sum);
-                String s1 = "Список покупок пользователя " + basket.getUser().getName() + ": " + s;
-                return new ResponseEntity<>(s1,HttpStatus.OK);
-            } else {
-                log.error("Список покупок пользователя пуст! Сумма к оплате: 0");
-                return new ResponseEntity<>("Список покупок пуст! Сумма к оплате: 0" ,HttpStatus.BAD_REQUEST);
-            }
+            return basketService.creatingList(basket);
         } else {
             log.error("Неверный id " + userId);
             return new ResponseEntity<>("Вы ввели неправильный id " + userId,HttpStatus.BAD_REQUEST);
@@ -140,12 +100,7 @@ public class BasketController {
         Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
         if(optionalBasket.isPresent()){
             Basket basket = optionalBasket.get();
-            for (Product product: basket.getProductList()) {
-                basketRepo.map.remove(Arrays.asList(userId, product.getProductId()));
-            }
-            basket.setProductList(new LinkedList<>());
-            basketRepo.save(basket);
-            log.info("Корзина очищена!");
+            basketService.cleanBasket(basket);
             return new ResponseEntity<>("Корзина очищена!",HttpStatus.OK);
         }else {
             log.error("Неверный id " + userId);
@@ -161,19 +116,10 @@ public class BasketController {
             @PathVariable(name = "id") Long productId,
             @PathVariable(name = "user_id") Long userId
     ){
-        Optional<Product> optionalProduct = productRepo.findById(productId);
         Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
         if(optionalBasket.isPresent()){
             Basket basket = optionalBasket.get();
-            if(optionalProduct.isPresent()){
-                Product chosenProduct = optionalProduct.get();
-                basketRepo.map.remove(Arrays.asList(userId, chosenProduct.getProductId()));
-                basket.getProductList().remove(chosenProduct);
-                return new ResponseEntity<>("Продукт " + chosenProduct.getName() + " успешно удален из вашего списка покупок!",HttpStatus.OK);
-            } else {
-                log.error("Вы ввели неправильный user_id " + userId);
-                return new ResponseEntity<>("Вы ввели неправильный productId " + userId,HttpStatus.BAD_REQUEST);
-            }
+            return basketService.removing(productId,basket);
         } else {
             log.error("Вы ввели неправильный user_id " + userId);
             return new ResponseEntity<>("Вы ввели неправильный user_id " + userId,HttpStatus.BAD_REQUEST);
@@ -229,41 +175,10 @@ public class BasketController {
     ){
         Optional<User> user = userRepo.findById(userId);
         Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
-        Optional<Card> optionalCard = cardRepo.findByUserId(userId);
         if(user.isPresent()){
             if(optionalBasket.isPresent()){
                 Basket basket = optionalBasket.get();
-                if(optionalCard.isPresent()){
-                    List<Product> productList = basket.getProductList();
-                    Card card = optionalCard.get();
-                    int sum = 0;
-                    int remainder = card.getAmountOfMoney();
-                    for (Product product: productList) {
-                        Integer weight = basketRepo.map.get(Arrays.asList(userId, product.getProductId()));
-                        System.out.println(weight);
-                        int objSum = product.getPrice() * weight;
-                        sum += objSum;
-                        remainder -= sum;
-                        if(remainder > 0){
-                            basketService.changeProducts(product.getProductId(),weight);
-                            basketRepo.map.remove(Arrays.asList(userId, product.getProductId()));
-                            productRepo.save(product);
-                            card.setAmountOfMoney(remainder);
-                        } else {
-                            log.error("Недостаточно средств на карте!");
-                            return new ResponseEntity<>("Пожалуйста пополните карту! ",HttpStatus.BAD_REQUEST);
-                        }
-                    }
-                    cardRepo.save(card);
-                    log.info("Продукты изменены в базе!");
-                    basketRepo.delete(basket);
-                    log.info("Оплата прошла успешно");
-                    return new ResponseEntity<>("С вашей картой списано " + sum + ". Ваш остаток по счету равен :" + remainder +
-                                " Спасибо за покупку! Ждем вас снова!",HttpStatus.OK);
-                    } else {
-                    log.error("Карта пользователя не найдена!");
-                    return new ResponseEntity<>("Пожалуйста, создайте карту",HttpStatus.BAD_GATEWAY);
-                }
+                return basketService.deleting(basket);
             } else {
                 log.info("Корзина пользователя " + userId + "пуста!");
                 return  new ResponseEntity<>("Ваша корзина пуста!",HttpStatus.BAD_REQUEST);
