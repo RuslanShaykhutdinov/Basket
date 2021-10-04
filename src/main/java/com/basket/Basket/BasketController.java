@@ -15,9 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.Id;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
 
@@ -26,21 +24,20 @@ public class BasketController {
 
     private static final Logger log = LoggerFactory.getLogger(BasketController.class);
 
-    @Autowired
-    ProductRepo productRepo;
+    private final ProductRepo productRepo;
+    private final BasketRepo basketRepo;
+    private final UserRepo userRepo;
+    private final CardRepo cardRepo;
+    private final BasketService basketService;
 
     @Autowired
-    BasketRepo basketRepo;
-
-    @Autowired
-    UserRepo userRepo;
-
-    @Autowired
-    CardRepo cardRepo;
-
-    @Autowired
-    BasketService basketService;
-
+    public BasketController(ProductRepo productRepo, BasketRepo basketRepo, UserRepo userRepo, CardRepo cardRepo, BasketService basketService) {
+        this.productRepo = productRepo;
+        this.basketRepo = basketRepo;
+        this.userRepo = userRepo;
+        this.cardRepo = cardRepo;
+        this.basketService = basketService;
+    }
 
     //Метод авторизации пользователя
 

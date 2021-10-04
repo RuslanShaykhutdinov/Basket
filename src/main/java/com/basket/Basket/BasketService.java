@@ -23,14 +23,17 @@ public class BasketService {
 
     private static final Logger log = LoggerFactory.getLogger(BasketService.class);
 
-    @Autowired
-    ProductRepo productRepo;
+
+    private  final ProductRepo productRepo;
+    private final BasketRepo basketRepo;
+    private final CardRepo cardRepo;
 
     @Autowired
-    BasketRepo basketRepo;
-
-    @Autowired
-    CardRepo cardRepo;
+    public BasketService(ProductRepo productRepo, BasketRepo basketRepo, CardRepo cardRepo) {
+        this.productRepo = productRepo;
+        this.basketRepo = basketRepo;
+        this.cardRepo = cardRepo;
+    }
 
     public Product checkWeight(Long productId, Integer weight) {
         Optional<Product> optionalProduct = productRepo.findProduct(productId);
