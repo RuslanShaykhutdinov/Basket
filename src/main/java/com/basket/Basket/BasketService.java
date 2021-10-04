@@ -28,6 +28,8 @@ public class BasketService {
     private final BasketRepo basketRepo;
     private final CardRepo cardRepo;
 
+    private static final int INITIAL_SUM = 0;
+
     @Autowired
     public BasketService(ProductRepo productRepo, BasketRepo basketRepo, CardRepo cardRepo) {
         this.productRepo = productRepo;
@@ -98,7 +100,7 @@ public class BasketService {
         if(!basket.getProductList().isEmpty()){
             Long userId = basket.getUser().getUserID();
             StringBuilder s = new StringBuilder();
-            int sum = 0;
+            int sum = INITIAL_SUM;
             for (Product product: basket.getProductList()) {
                 Integer weight = basketRepo.map.get(Arrays.asList(userId, product.getProductId()));
                 Integer objSum = product.getPrice() * weight;
@@ -109,8 +111,8 @@ public class BasketService {
             String s1 = "Список покупок пользователя " + basket.getUser().getName() + ": " + s;
             return new ResponseEntity<>(s1,HttpStatus.OK);
         } else {
-            log.error("Список покупок пользователя пуст! Сумма к оплате: 0");
-            return new ResponseEntity<>("Список покупок пуст! Сумма к оплате: 0" ,HttpStatus.BAD_REQUEST);
+            log.error("Список покупок пользователя пуст! Сумма к оплате: " + INITIAL_SUM);
+            return new ResponseEntity<>("Список покупок пуст! Сумма к оплате: " + INITIAL_SUM,HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -152,7 +154,7 @@ public class BasketService {
     private ResponseEntity<String> checking(Card card, List<Product> productList) {
         Long userId = card.getUser().getUserID();
         Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
-        int sum = 0;
+        int sum = INITIAL_SUM;
         int remainder = card.getAmountOfMoney();
         for (Product product: productList) {
             Integer weight = basketRepo.map.get(Arrays.asList(userId, product.getProductId()));
