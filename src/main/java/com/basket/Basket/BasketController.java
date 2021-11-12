@@ -152,7 +152,7 @@ public class BasketController {
         if(optionalUser.isPresent()){
             User user = optionalUser.get();
             if(!card.isPresent()){
-                cardRepo.save(new Card(1_000_000, user));
+                cardRepo.save(new Card(BasketService.START_POINT_SUM, user));
                 log.info("Карта пользователя создана!");
                 return new ResponseEntity<>("Карта пользователя создана",HttpStatus.OK);
             } else {

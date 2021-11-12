@@ -21,6 +21,7 @@ import static java.lang.Math.abs;
 @Service
 public class BasketService {
 
+    public static final Integer START_POINT_SUM = 1_000_000;
     private static final Logger log = LoggerFactory.getLogger(BasketService.class);
 
 
@@ -29,6 +30,7 @@ public class BasketService {
     private final CardRepo cardRepo;
 
     private static final int INITIAL_SUM = 0;
+
 
     @Autowired
     public BasketService(ProductRepo productRepo, BasketRepo basketRepo, CardRepo cardRepo) {
