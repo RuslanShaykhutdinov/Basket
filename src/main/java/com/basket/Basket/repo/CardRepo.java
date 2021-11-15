@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface CardRepo extends CrudRepository<Card,Long> {
 
-    @Query("SELECT o FROM Card o where o.user.userID = ?1")
+    @Query("SELECT o FROM Card o where o.user.userId = ?1")
     Optional <Card> findByUserId(Long userId);
 }

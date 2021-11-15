@@ -8,6 +8,8 @@ import com.basket.Basket.repo.BasketRepo;
 import com.basket.Basket.repo.CardRepo;
 import com.basket.Basket.repo.ProductRepo;
 import com.basket.Basket.repo.UserRepo;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +19,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-import static java.lang.Math.abs;
+
+
 
 @RestController
 public class BasketController {
 
     private static final Logger log = LoggerFactory.getLogger(BasketController.class);
+    public static final Integer START_POINT_SUM = 1_000_000;
 
     private final ProductRepo productRepo;
     private final BasketRepo basketRepo;
@@ -42,149 +46,204 @@ public class BasketController {
 
     //Метод авторизации пользователя
 
-    @RequestMapping(value = "/signing/{id}", method = RequestMethod.GET)
-    private ResponseEntity<String> signIn(
-            @PathVariable(name = "id") Long userId
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    private RestError logIn(
+            @RequestParam(name = "userId") Long userId
     ){
-        Optional<User> currentUser = userRepo.findById(userId);
-        if(currentUser.isPresent()){
-            basketService.signing(currentUser);
-            return new ResponseEntity<>("Пользователь " + currentUser.get().getName() + " успешно вошел в приложение", HttpStatus.OK);
-        } else {
-            log.error("Пользователь с таким " + userId + "не найден");
-            return new ResponseEntity<>("Не удалось войти в аккаунт",HttpStatus.BAD_REQUEST);
+        log.info("> login");
+        User user = userRepo.findById(userId).orElse(null);
+        if (user == null){
+            log.error("Пользователь с таким id " + userId + "не найден");
+            log.info("< login");
+            return new RestError(1,"User not found in Base",HttpStatus.BAD_REQUEST);
         }
+        basketService.login(user);
+        log.info("Пользователь " + user.getName() + " успешно вошел в приложение");
+        log.info("< login");
+        return new RestError("OK",HttpStatus.OK);
     }
 
     //Метод добавление товара пользователя по ID
 
-    @RequestMapping(value = "/{user_id}/addToBasket/{id}/{weight}", method = RequestMethod.POST)
-    private ResponseEntity<String> addItemToBasket(
-            @PathVariable(name = "id") Long productId ,
-            @PathVariable(name = "user_id") Long userId,
-            @PathVariable Integer weight
+    @RequestMapping(value = "/addToBasket", method = RequestMethod.POST)
+    private RestError addItemToBasket(
+            @RequestBody String json
     ){
-        Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
-        if(optionalBasket.isPresent()){
-            Basket basket = optionalBasket.get();
-            return basketService.adding(productId,weight,basket);
-        } else {
-            log.error("Вы ввели неправильный user_id " + userId);
-            return new ResponseEntity<>("Вы ввели неправильный user_id " + userId,HttpStatus.BAD_REQUEST);
+        log.info("> addToBasket");
+
+        Long userId = null;
+        Long productId = null;
+        Integer weight = null;
+
+        try {
+            JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
+            userId = jo.get("userId").getAsLong();
+            productId = jo.get("productId").getAsLong();
+            weight = jo.get("weight").getAsInt();
+        } catch (Exception e){
+            log.info("Couldn't create a json");
         }
+
+        Basket basket = basketRepo.findByUserId(userId).orElse(null);
+        Product product = productRepo.findProduct(productId).orElse(null);
+        if (basket == null){
+            log.error("Пользователь с таким id " + userId + "не найден");
+            log.info("< addToBasket");
+            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
+        }
+        if (product == null){
+            log.info("Продукт не найден в базе! Введенный id " + productId);
+            log.info("< addToBasket");
+            return  new RestError(3,"Product not found / wrong id",HttpStatus.BAD_REQUEST);
+        }
+        RestError re = basketService.adding(productId,weight,basket);
+        log.info("> addToBasket");
+        return re;
     }
 
     //Метод вывода чека
-    @RequestMapping(value = "/{user_id}/buyList",method = RequestMethod.GET)
-    private ResponseEntity<String> buyList(
-            @PathVariable(name = "user_id") Long userId
+    @RequestMapping(value = "/buyList",method = RequestMethod.GET)
+    private RestError buyList(
+            @RequestParam(name = "userId") Long userId
     ){
-        Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
-        if(optionalBasket.isPresent()){
-            Basket basket = optionalBasket.get();
-            return basketService.creatingList(basket);
-        } else {
-            log.error("Неверный id " + userId);
-            return new ResponseEntity<>("Вы ввели неправильный id " + userId,HttpStatus.BAD_REQUEST);
+        log.info("> buyList");
+        Basket basket = basketRepo.findByUserId(userId).orElse(null);
+        if(basket == null){
+            log.error("Пользователь с таким id " + userId + "не найден / basket not found");
+            log.info("< buyList");
+            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
         }
+        RestError re = basketService.creatingList(basket);
+        log.info("< buyList");
+        return re;
     }
 
     //Метод удаления списка покупок
 
-    @RequestMapping(value = "/{user_id}/deleteList",method = RequestMethod.DELETE)
-    private ResponseEntity<String> deleteList(
-            @PathVariable(name = "user_id") Long userId
+    @RequestMapping(value = "/deleteList",method = RequestMethod.DELETE)
+    private RestError deleteList(
+            @RequestParam(name = "userId") Long userId
     ){
-        Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
-        if(optionalBasket.isPresent()){
-            Basket basket = optionalBasket.get();
-            basketService.cleanBasket(basket);
-            return new ResponseEntity<>("Корзина очищена!",HttpStatus.OK);
-        }else {
-            log.error("Неверный id " + userId);
-            return new ResponseEntity<>("Вы ввели неправильный id " + userId,HttpStatus.BAD_REQUEST);
+        log.info("> deleteList");
+        Basket basket = basketRepo.findByUserId(userId).orElse(null);
+        if(basket == null){
+            log.error("Пользователь с таким id " + userId + "не найден / basket not found");
+            log.info("< deleteList");
+            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
         }
-
+        basketService.cleanBasket(basket);
+        log.info("< deleteList");
+        return new RestError("Корзина очищена!",HttpStatus.OK);
     }
 
     //Метод удаления товара пользователя по ID
 
-    @RequestMapping(value = "/{user_id}/removeFromBasket/{id}",method = RequestMethod.DELETE)
-    private ResponseEntity<String> removeFromBasket(
-            @PathVariable(name = "id") Long productId,
-            @PathVariable(name = "user_id") Long userId
+    @RequestMapping(value = "/removeFromBasket",method = RequestMethod.DELETE)
+    private RestError removeFromBasket(
+            @RequestParam(name = "productId") Long productId,
+            @RequestParam(name = "userId") Long userId
     ){
-        Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
-        if(optionalBasket.isPresent()){
-            Basket basket = optionalBasket.get();
-            return basketService.removing(productId,basket);
-        } else {
-            log.error("Вы ввели неправильный user_id " + userId);
-            return new ResponseEntity<>("Вы ввели неправильный user_id " + userId,HttpStatus.BAD_REQUEST);
+        log.info("> removeFromBasket");
+        Basket basket = basketRepo.findByUserId(userId).orElse(null);
+        Product product = productRepo.findById(productId).orElse(null);
+        if(basket == null){
+            log.error("Пользователь с таким id " + userId + "не найден / basket not found");
+            log.info("< removeFromBasket");
+            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
         }
+        if (product == null){
+            log.info("Продукт не найден в базе! Введенный id " + productId);
+            log.info("< removeFromBasket");
+            return  new RestError(3,"Product not found / wrong id",HttpStatus.BAD_REQUEST);
+        }
+        RestError re = basketService.removing(product,basket);
+        log.info("< removeFromBasket");
+        return re;
     }
 
     //Метод вывода всего доступного товара
 
-    @RequestMapping(value = "/availableProducts",method = RequestMethod.GET)
-    private ResponseEntity<StringBuilder> allProducts(){
-        List<Product> product = productRepo.findAll();
+    @RequestMapping(value = "/allProducts",method = RequestMethod.GET)
+    private RestError allProducts(){
+        log.info(" < allProducts");
+        List<Product> productList = productRepo.findAll();
         StringBuilder stringBuilder = new StringBuilder();
-        for (Product value : product) {
-            if(value.getWeight() < 0){
-                continue;
+        for (Product product : productList) {
+            if(product.getWeight() <= 0){
+                continue; //не показывает если закончилось
             }
-            stringBuilder.append(value.getName()).append(" ").append(value.getPrice())
-                    .append(" ").append(value.getWeight()).append("\n");
+            stringBuilder.append(product.getName()).append(" ").append(product.getPrice())
+                    .append(" ").append(product.getWeight()).append("\n");
         }
-        log.info("Вывод списка всех доступных товаров!");
-        return new ResponseEntity<>(stringBuilder,HttpStatus.OK);
+        log.info("> allProducts");
+        return new RestError(stringBuilder,HttpStatus.OK);
     }
 
     //Метод создания карты пользователю
 
-    @RequestMapping(value = "/{user_id}/card",method = RequestMethod.POST)
-    private ResponseEntity<String> createCard(
-            @PathVariable(name = "user_id") Long userId
+    @RequestMapping(value = "/createCard",method = RequestMethod.POST)
+    private RestError createCard(
+            @RequestBody String json
     ){
-        Optional<Card> card = cardRepo.findByUserId(userId);
-        Optional<User> optionalUser = userRepo.findById(userId);
-        if(optionalUser.isPresent()){
-            User user = optionalUser.get();
-            if(!card.isPresent()){
-                cardRepo.save(new Card(BasketService.START_POINT_SUM, user));
-                log.info("Карта пользователя создана!");
-                return new ResponseEntity<>("Карта пользователя создана",HttpStatus.OK);
-            } else {
-                log.info("У пользователя " + user.getName() + " уже есть карта");
-                return new ResponseEntity<>("У вас уже есть карта!",HttpStatus.BAD_GATEWAY);
-            }
-        } else {
-            log.error("Вы ввели неправильный user_id " + userId);
-            return new ResponseEntity<>("Вы ввели неправильный user_id " + userId,HttpStatus.BAD_REQUEST);
+        log.info("> createCard");
+        Long userId = null;
+
+        try {
+            JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
+            userId = jo.get("userId").getAsLong();
+        } catch (Exception e){
+            log.info("Couldn't create a json");
         }
+        Card card = cardRepo.findByUserId(userId).orElse(null);
+        User user = userRepo.findById(userId).orElse(null);
+        if (user == null){
+            log.error("Пользователь с таким id " + userId + "не найден");
+            log.info("< createCard");
+            return new RestError(1,"User not found in Base",HttpStatus.BAD_REQUEST);
+        }
+        if (card != null){
+            log.info("У пользователя c id " + userId + " уже есть карта");
+            log.info("< createCard");
+            return new RestError(7,null, "У пользователя уже есть карта!", HttpStatus.BAD_REQUEST );
+        }
+        cardRepo.save(new Card(START_POINT_SUM, user));
+        log.info("< createCard");
+        return new RestError("OK",HttpStatus.OK);
     }
 
     //Метод списания с карты
 
-    @RequestMapping(value = "/{user_id}/payment",method = RequestMethod.PUT)
-    private ResponseEntity<String> payment(
-            @PathVariable(name = "user_id") Long userId
+    @RequestMapping(value = "/payment",method = RequestMethod.PUT)
+    private RestError payment(
+            @RequestBody String json
     ){
-        Optional<User> user = userRepo.findById(userId);
-        Optional<Basket> optionalBasket = basketRepo.findByUserId(userId);
-        if(user.isPresent()){
-            if(optionalBasket.isPresent()){
-                Basket basket = optionalBasket.get();
-                return basketService.deleting(basket);
-            } else {
-                log.info("Корзина пользователя " + userId + "пуста!");
-                return  new ResponseEntity<>("Ваша корзина пуста!",HttpStatus.BAD_REQUEST);
-                }
-        } else {
-            log.info("Пользователь с таким id " + userId + "не найден!");
-            return  new ResponseEntity<>("Вы ввели неправильный id" + userId,HttpStatus.BAD_REQUEST);
+        log.info("> payment");
+        Long userId = null;
+
+        try {
+            JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
+            userId = jo.get("userId").getAsLong();
+        } catch (Exception e){
+            log.info("Couldn't create a json");
         }
+        Basket basket = basketRepo.findByUserId(userId).orElse(null);
+        Card card = cardRepo.findByUserId(userId).orElse(null);
+        User user = userRepo.findById(userId).orElse(null);
+        if (user == null){
+            log.error("Пользователь с таким id " + userId + "не найден");
+            log.info("< createCard");
+            return new RestError(1,"User not found in Base",HttpStatus.BAD_REQUEST);
+        }
+        if (card == null){
+            log.error("Пользователь с таким id" + userId + "не найден / card not found");
+            log.info("< login");
+            return new RestError(8,"Card not found in Base / user not found",HttpStatus.BAD_REQUEST);
+        }
+        if(basket == null){
+            log.error("Пользователь с таким id " + userId + "не найден / basket not found");
+            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
+        }
+        return basketService.checking(userId,card,basket);
     }
 }
 

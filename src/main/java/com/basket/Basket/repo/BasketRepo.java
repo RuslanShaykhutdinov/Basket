@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface BasketRepo extends CrudRepository<Basket,Long>  {
 
-    @Query("SELECT o FROM Basket o where o.user.userID = ?1")
+    @Query("SELECT o FROM Basket o where o.user.userId = ?1")
     Optional<Basket> findByUserId(Long userId);
 
     HashMap<List<Long>, Integer> map = new HashMap<>();

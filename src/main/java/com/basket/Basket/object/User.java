@@ -9,7 +9,7 @@ public class User {
     @SequenceGenerator(name="userIdGenerator", sequenceName = "user_id_seq", schema = "public", initialValue = 100, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "userIdGenerator")
     @Column(name = "user_id")
-    private Long userID;
+    private Long userId;
 
     @Basic
     @Column(name = "name")
@@ -40,12 +40,12 @@ public class User {
         this.userInfo = userInfo;
     }
 
-    public Long getUserID() {
-        return userID;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUserID(Long userID) {
-        this.userID = userID;
+    public void setUserId(Long userID) {
+        this.userId = userID;
     }
 
     public String getName() {
@@ -83,7 +83,7 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "userID=" + userID +
+                "userID=" + userId +
                 ", name='" + name + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", age=" + age +
