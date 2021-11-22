@@ -1,6 +1,6 @@
-package com.basket.Basket.repo;
+package com.Application.repo;
 
-import com.basket.Basket.object.Basket;
+import com.Application.object.Basket;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

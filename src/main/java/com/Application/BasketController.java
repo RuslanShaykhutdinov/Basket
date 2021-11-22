@@ -1,20 +1,21 @@
-package com.basket.Basket;
+package com.Application;
 
-import com.basket.Basket.object.Basket;
-import com.basket.Basket.object.Card;
-import com.basket.Basket.object.Product;
-import com.basket.Basket.object.User;
-import com.basket.Basket.repo.BasketRepo;
-import com.basket.Basket.repo.CardRepo;
-import com.basket.Basket.repo.ProductRepo;
-import com.basket.Basket.repo.UserRepo;
+import com.Application.object.Card;
+import com.Application.object.Product;
+import com.Application.object.User;
+import com.Application.object.Basket;
+import com.Application.replies.LogInReply;
+import com.Application.repo.BasketRepo;
+import com.Application.repo.CardRepo;
+import com.Application.repo.ProductRepo;
+import com.Application.repo.UserRepo;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -33,6 +34,7 @@ public class BasketController {
     private final UserRepo userRepo;
     private final CardRepo cardRepo;
     private final BasketService basketService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
 
     @Autowired
@@ -46,21 +48,63 @@ public class BasketController {
 
     //Метод авторизации пользователя
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
     private RestError logIn(
-            @RequestParam(name = "userId") Long userId
+            @RequestBody String json
     ){
         log.info("> login");
-        User user = userRepo.findById(userId).orElse(null);
-        if (user == null){
-            log.error("Пользователь с таким id " + userId + "не найден");
-            log.info("< login");
-            return new RestError(1,"User not found in Base",HttpStatus.BAD_REQUEST);
+        String logIn = null;
+        String password = null;
+
+        try {
+            JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
+            logIn = jo.get("logIn").getAsString();
+            password = jo.get("password").getAsString();
+        } catch (Exception e){
+            log.info("Couldn't create a json");
         }
-        basketService.login(user);
-        log.info("Пользователь " + user.getName() + " успешно вошел в приложение");
+        User user = userRepo.findByLogin(logIn).orElse(null);
+        boolean addInfo = false;
+        if (user == null){
+            log.info("Пользователь с таким логином " + logIn + " не найден");
+            user = new User();
+            user.setLogin(logIn);
+            user.setPassword(bCryptPasswordEncoder.encode(password));
+            userRepo.save(user);
+            basketService.login(user);
+            addInfo = true;
+        } else {
+            boolean passwordOK = true;
+            user.setPasswordCheck(user.getPasswordCheck() + 1);
+            userRepo.save(user);
+            if(!bCryptPasswordEncoder.matches(password,user.getPassword())){
+                passwordOK = false;
+                log.error("Неверный пароль");
+            }
+            if(!passwordOK){
+                if (user.getPasswordCheck() >= 3){
+                    log.info("Аккаунт заблокирован");
+                    log.info("< login");
+                    user.setBlocked(true);
+                    userRepo.save(user);
+                    return new RestError(11, "Account is deleted",HttpStatus.BAD_REQUEST);
+                }
+                if (user.getPasswordCheck() == 2){
+                    log.info("Последняя попытка");
+                    log.info("< login");
+                    return new RestError(12, "Last chance",HttpStatus.BAD_REQUEST);
+                }
+                return new RestError(10,"Password is incorrect",HttpStatus.BAD_REQUEST);
+            } else {
+                user.setPasswordCheck(0);
+                userRepo.save(user);
+            }
+        }
+        log.info("Пользователь " + user.getUserId() + " успешно вошел в приложение");
         log.info("< login");
-        return new RestError("OK",HttpStatus.OK);
+        RestError re = new RestError();
+        re.setData(new LogInReply(user.getUserId(),addInfo));
+        return re;
     }
 
     //Метод добавление товара пользователя по ID
@@ -166,17 +210,9 @@ public class BasketController {
     @RequestMapping(value = "/allProducts",method = RequestMethod.GET)
     private RestError allProducts(){
         log.info(" < allProducts");
-        List<Product> productList = productRepo.findAll();
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Product product : productList) {
-            if(product.getWeight() <= 0){
-                continue; //не показывает если закончилось
-            }
-            stringBuilder.append(product.getName()).append(" ").append(product.getPrice())
-                    .append(" ").append(product.getWeight()).append("\n");
-        }
+        List<Product> productList = productRepo.findAllAvailable();
         log.info("> allProducts");
-        return new RestError(stringBuilder,HttpStatus.OK);
+        return new RestError(productList,HttpStatus.OK);
     }
 
     //Метод создания карты пользователю
@@ -206,7 +242,7 @@ public class BasketController {
             log.info("< createCard");
             return new RestError(7,null, "У пользователя уже есть карта!", HttpStatus.BAD_REQUEST );
         }
-        cardRepo.save(new Card(START_POINT_SUM, user));
+        cardRepo.save(new Card(START_POINT_SUM, userId));
         log.info("< createCard");
         return new RestError("OK",HttpStatus.OK);
     }

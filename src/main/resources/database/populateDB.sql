@@ -1,15 +1,4 @@
-INSERT INTO users VALUES
-                        (1,'Oleg',null,24,null),
-                         (2,'Linn',null,17,null),
-                         (3,'David',null,19,null),
-                         (4,'Kyle','Brown',17,'Good boy'),
-                         (5,'Mate',null,29,null),
-                         (6,'Rasla',null,13,null),
-                         (7,'Kiril',null,27,null),
-                         (8,'Jim',null,37,null),
-                         (9,'Bob',null,27,null);
-
-INSERT INTO products VALUES
+INSERT INTO Products VALUES
                          (1000,'Tomatoes',5000,100,null,true),
                          (1001,'Cucumbers',7000,100,null,true),
                          (1002,'Milk', 10000, 200,null,true),

@@ -1,4 +1,4 @@
-package com.basket.Basket;
+package com.Application;
 
 import org.springframework.http.HttpStatus;
 

@@ -1,14 +1,15 @@
-package com.basket.Basket.object;
+package com.Application.object;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
-@Table(name = "Products")
+@Table(name = "products")
 public class Product {
     @Id
     @SequenceGenerator(name="productIdGenerator", sequenceName = "product_id_seq", schema = "public", initialValue = 1000, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "productIdGenerator")
-    @Column(name = "id")
+    @Column(name = "product_id")
     private Long productId;
 
     @Basic
@@ -32,21 +33,6 @@ public class Product {
 
     public Product() {
         this.availability = true;
-    }
-
-    public Product(String name, Integer price, Integer weight) {
-        this.name = name;
-        this.price = price;
-        this.weight = weight;
-        this.availability = true;
-    }
-
-    public Product(String name, Integer price, Integer weight, String info, Boolean availability) {
-        this.name = name;
-        this.price = price;
-        this.weight = weight;
-        this.info = info;
-        this.availability = availability;
     }
 
     public Long getProductId() {
@@ -95,6 +81,19 @@ public class Product {
 
     public void setAvailability(Boolean availability) {
         this.availability = availability;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Product product = (Product) o;
+        return productId.equals(product.productId) && name.equals(product.name) && price.equals(product.price) && weight.equals(product.weight) && Objects.equals(info, product.info) && availability.equals(product.availability);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(productId, name, price, weight, info, availability);
     }
 
     @Override

@@ -1,17 +1,16 @@
-package com.basket.Basket;
+package com.Application;
 
-import com.basket.Basket.object.Basket;
-import com.basket.Basket.object.Card;
-import com.basket.Basket.object.Product;
-import com.basket.Basket.object.User;
-import com.basket.Basket.repo.BasketRepo;
-import com.basket.Basket.repo.CardRepo;
-import com.basket.Basket.repo.ProductRepo;
+import com.Application.object.Basket;
+import com.Application.object.Card;
+import com.Application.object.Product;
+import com.Application.object.User;
+import com.Application.repo.CardRepo;
+import com.Application.repo.ProductRepo;
+import com.Application.repo.BasketRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -49,9 +48,12 @@ public class BasketService {
     }
 
     public void login(User user) {
-        String userName = user.getName();
-        log.info("Пользователь " + userName + " найден в базе данных!");
-        basketRepo.save(new Basket(user,new LinkedList<>()));
+        log.info("> Service login");
+        Basket basket = new Basket();
+        basket.setUserId(user.getUserId());
+        basket.setProductList(new LinkedList<>());
+        basketRepo.save(basket);
+        log.info("< Service login");
     }
 
     public RestError adding(Long productId,Integer weight, Basket basket) {
@@ -119,7 +121,7 @@ public class BasketService {
         return new RestError("Продукт " + product.getName() + " успешно удален из вашего списка покупок!",HttpStatus.OK);
     }
 
-    public RestError checking(Long userId,Card card, Basket basket) {
+    public RestError checking(Long userId, Card card, Basket basket) {
         List<Product> productList = basket.getProductList();
         int sum = INITIAL_SUM;
         int remainder = card.getAmountOfMoney();
