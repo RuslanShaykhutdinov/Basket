@@ -11,8 +11,11 @@ import java.util.Optional;
 @Repository
 public interface ProductRepo extends CrudRepository<Product,Long> {
     @Query("SELECT o FROM Product o where o.productId = ?1")
-    Optional <Product> findProduct(Object getProductId);
+    Optional <Product> findProduct(Long getProductId);
 
     @Query("SELECT p FROM Product p WHERE p.weight > 0")
     List<Product> findAllAvailable();
+
+    @Query("SELECT p FROM Product p WHERE p.name = ?1")
+    Product findByName(String name);
 }

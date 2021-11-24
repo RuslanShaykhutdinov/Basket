@@ -9,7 +9,7 @@ public class ProductItem {
     @SequenceGenerator(name="productItemIdGenerator", sequenceName = "product_item_id_seq", schema = "public", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "productItemIdGenerator")
     @Column(name = "id")
-    private long id;
+    private Long id;
     @Basic
     @Column(name = "name")
     private String name;
@@ -26,11 +26,11 @@ public class ProductItem {
 
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
