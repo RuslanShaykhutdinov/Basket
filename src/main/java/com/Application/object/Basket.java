@@ -24,16 +24,11 @@ public class Basket {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false, updatable = false, insertable = false)
     private User user;
 
-    @OneToMany //NOT SURE change to ManyToMany if doesn't work
+    @OneToMany
     @Column(name = "list_of_products")
-    private List<Product> productList;
+    private List<ProductItem> productList;
 
     public Basket() {
-    }
-
-    public Basket( User user, List<Product> productList) {
-        this.user = user;
-        this.productList = productList;
     }
 
     public Long getBaskedId() {
@@ -56,11 +51,11 @@ public class Basket {
         return user;
     }
 
-    public List<Product> getProductList() {
+    public List<ProductItem> getProductList() {
         return productList;
     }
 
-    public void setProductList(List<Product> productList) {
+    public void setProductList(List<ProductItem> productList) {
         this.productList = productList;
     }
 
