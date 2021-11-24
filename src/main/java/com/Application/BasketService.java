@@ -175,4 +175,12 @@ public class BasketService {
         }
         return  allowed;
     }
+
+    public Integer findFullPrice(List<ProductItem> productList) {
+        Integer fullPrice = null;
+        for (ProductItem product: productList) {
+            fullPrice += product.getPrice() * product.getWeight();
+        }
+        return fullPrice;
+    }
 }

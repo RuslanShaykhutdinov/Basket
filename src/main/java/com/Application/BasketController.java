@@ -1,6 +1,7 @@
 package com.Application;
 
 import com.Application.object.*;
+import com.Application.replies.BuyListReply;
 import com.Application.replies.LogInReply;
 import com.Application.repo.BasketRepo;
 import com.Application.repo.CardRepo;
@@ -155,15 +156,16 @@ public class BasketController {
             @RequestParam(name = "userId") Long userId
     ){
         log.info("> buyList");
-        Basket basket = basketRepo.findByUserId(userId).orElse(null);
-        if(basket == null){
-            log.error("Пользователь с таким id " + userId + "не найден / basket not found");
-            log.info("< buyList");
-            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
-        }
         List <ProductItem> productList = basketRepo.getProductList(userId);
+        if (productList.isEmpty()){
+            log.info("< buyList");
+            return new RestError(13,"Shopping list is empty",HttpStatus.BAD_REQUEST);
+        }
+        Integer fullPrice = basketService.findFullPrice(productList);
         log.info("< buyList");
-        return new RestError();
+        RestError re = new RestError();
+        re.setData(new BuyListReply(productList,fullPrice));
+        return re;
     }
 
     //Метод удаления списка покупок
