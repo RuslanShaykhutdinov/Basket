@@ -9,14 +9,22 @@ import com.Application.repo.ProductRepo;
 import com.Application.repo.UserRepo;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Objects;
 
 
 
@@ -27,6 +35,15 @@ public class BasketController {
     private static final Logger log = LoggerFactory.getLogger(BasketController.class);
     private static final Integer START_POINT_SUM = 1_000_000;
     private static final Long ALCOHOL_ITEM = 1013L;
+
+    @Value("${images.folder}")
+    private String IMAGES_FOLDER;
+
+    @Value("${main.path}")
+    private String MAIN_PATH;
+
+    @Value("${api.url.base}")
+    private String API_URL;
 
     private final ProductRepo productRepo;
     private final BasketRepo basketRepo;
@@ -217,6 +234,12 @@ public class BasketController {
     private RestError allProducts(){
         log.info(" < allProducts");
         List<Product> productList = productRepo.findAllAvailable();
+        for (Product product:productList) {
+            if(!product.getImageUrl().startsWith(API_URL)){
+                product.setImageUrl(API_URL + "get-image/" + product.getImageUrl());
+                productRepo.save(product);
+            }
+        }
         log.info("> allProducts");
         return new RestError(productList,HttpStatus.OK);
     }
@@ -287,6 +310,38 @@ public class BasketController {
         }
 
         return basketService.checking(card,basket);
+    }
+
+    @RequestMapping(value = "/get-image/{imgFileName}", method = RequestMethod.GET)
+    public RestError getImage(
+            HttpServletResponse response,
+
+            @PathVariable("imgFileName") String imgFileName
+    ) {
+
+        log.info("> get-image [ " + imgFileName +" ]");
+
+        byte[] content = null;
+        try {
+            String path = IMAGES_FOLDER + imgFileName;
+            log.info(path);
+            File file = new File(path);
+            content = IOUtils.toByteArray(new FileInputStream(file));
+        } catch (Exception e) {
+            log.info("Couldn't load img: " + e.getMessage());
+        }
+        log.info("bytes.size = " + content.length);
+        OutputStream os = null;
+        try {
+            os = response.getOutputStream();
+            os.write(content);
+            os.flush();
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        log.info("< get-image");
+        return new RestError("OK", HttpStatus.OK);
     }
 }
 

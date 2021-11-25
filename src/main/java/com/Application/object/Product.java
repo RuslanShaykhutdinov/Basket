@@ -31,6 +31,10 @@ public class Product {
     @Column(name = "availability")
     private Boolean availability;
 
+    @Basic
+    @Column(name = "image_url")
+    private String imageUrl;
+
     public Product() {
         this.availability = true;
     }
@@ -83,17 +87,25 @@ public class Product {
         this.availability = availability;
     }
 
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Product product = (Product) o;
-        return productId.equals(product.productId) && name.equals(product.name) && price.equals(product.price) && weight.equals(product.weight) && Objects.equals(info, product.info) && availability.equals(product.availability);
+        return productId.equals(product.productId) && name.equals(product.name) && price.equals(product.price) && weight.equals(product.weight) && Objects.equals(info, product.info) && availability.equals(product.availability) && imageUrl.equals(product.imageUrl);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(productId, name, price, weight, info, availability);
+        return Objects.hash(productId, name, price, weight, info, availability, imageUrl);
     }
 
     @Override
@@ -105,6 +117,7 @@ public class Product {
                 ", weight=" + weight +
                 ", info='" + info + '\'' +
                 ", availability=" + availability +
+                ", imageUrl='" + imageUrl + '\'' +
                 '}';
     }
 }
