@@ -19,7 +19,7 @@ CREATE TABLE if NOT EXISTS users(
     last_name VARCHAR(25),
     age INTEGER,
     user_info VARCHAR(200),
-    passwordCheck INTEGER,
+    password_check INTEGER,
     blocked BOOLEAN NOT NULL
 );
 

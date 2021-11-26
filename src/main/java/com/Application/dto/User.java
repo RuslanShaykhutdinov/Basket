@@ -33,7 +33,7 @@ public class User {
     private String userInfo;
 
     @Basic
-    @Column(name = "passwordCheck")
+    @Column(name = "password_check")
     private int passwordCheck;
 
     @Basic

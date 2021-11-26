@@ -27,7 +27,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
 
-
+import static com.Application.Utils.*;
 
 
 @RestController
@@ -72,8 +72,8 @@ public class BasketController {
 
         try {
             JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
-            logIn = jo.get("logIn").getAsString();
-            password = jo.get("password").getAsString();
+            logIn = getSafeString(jo,"logIn",null);
+            password = getSafeString(jo,"password",null);
         } catch (Exception e){
             log.info("Couldn't create a json");
         }
@@ -135,9 +135,9 @@ public class BasketController {
 
         try {
             JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
-            userId = jo.get("userId").getAsLong();
-            productId = jo.get("productId").getAsLong();
-            weight = jo.get("weight").getAsInt();
+            userId = getSafeLong(jo,"userId",null);
+            productId = getSafeLong(jo,"productId",null);
+            weight = getSafeInt(jo,"weight",null);
         } catch (Exception e){
             log.info("Couldn't create a json");
         }
@@ -255,28 +255,54 @@ public class BasketController {
         return re;
     }
 
+    @RequestMapping(value = "/getCategory", method = RequestMethod.GET)
+    private RestError getCategory(
+            @RequestParam Long categoryId
+    ){
+        log.info("> getCategory");
+        List<Product> items = productRepo.findByCategory(categoryId);
+        // возможно нужно передавать имя категории
+        log.info("< getCategory");
+        return new RestError(items,HttpStatus.OK);
+    }
+
     //Метод заполнения аккаунта
 
-//    @RequestMapping(value = "/addInfo", method = RequestMethod.POST)
-//    private RestError addInfo(
-//            @RequestBody String json
-//    ) {
-//        log.info("> addInfo");
-//        Long userId = null;
-//        String name = null;
-//        String lastName = null;
-//        Integer age = null;
-//        String userInfo = null;
-//
-//        try {
-//            JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
-//            userId = jo.get("userId").getAsLong();
-//            name = jo.get("name").getAsString();
-//            lastName = jo.get("lastName").getAsString();
-//            age = jo.get("age").getAsInt();
-//            userInfo = jo.get()
-//        }
-//    }
+    @RequestMapping(value = "/addInfo", method = RequestMethod.POST)
+    private RestError addInfo(
+            @RequestBody String json
+    ) {
+        log.info("> addInfo");
+        Long userId = null;
+        String name = null;
+        String lastName = null;
+        Integer age = null;
+        String userInfo = null;
+
+        try {
+            JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
+            userId = getSafeLong(jo,"userId",null);
+            name = getSafeString(jo,"name",null);
+            lastName = getSafeString(jo,"lastName",null);
+            age = getSafeInt(jo,"age",null);
+            userInfo = getSafeString(jo,"userInfo",null);
+        } catch (Exception e){
+            log.error("Couldn't create json");
+        }
+
+        User user = userRepo.findById(userId).orElse(null);
+        if (user == null){
+            log.error("Пользователь с таким id " + userId + "не найден");
+            log.info("< addInfo");
+            return new RestError(1,"User not found in Base",HttpStatus.BAD_REQUEST);
+        }
+        user.setName(name);
+        user.setLastName(lastName);
+        user.setAge(age);
+        user.setUserInfo(userInfo);
+        userRepo.save(user);
+        return new RestError("OK",HttpStatus.OK);
+    }
 
     //Метод создания карты пользователю
 
@@ -289,7 +315,7 @@ public class BasketController {
 
         try {
             JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
-            userId = jo.get("userId").getAsLong();
+            userId = getSafeLong(jo,"userId",null);
         } catch (Exception e){
             log.info("Couldn't create a json");
         }
@@ -321,7 +347,7 @@ public class BasketController {
 
         try {
             JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
-            userId = jo.get("userId").getAsLong();
+            userId = getSafeLong(jo,"userId",null);
         } catch (Exception e){
             log.info("Couldn't create a json");
         }
