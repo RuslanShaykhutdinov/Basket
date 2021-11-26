@@ -1,6 +1,6 @@
 package com.Application.replies;
 
-import com.Application.object.ProductItem;
+import com.Application.dto.ProductItem;
 
 import java.util.List;
 

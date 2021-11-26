@@ -1,7 +1,8 @@
 package com.Application;
 
-import com.Application.object.*;
+import com.Application.dto.*;
 import com.Application.replies.BuyListReply;
+import com.Application.replies.CategoriesReply;
 import com.Application.replies.LogInReply;
 import com.Application.repo.BasketRepo;
 import com.Application.repo.CardRepo;
@@ -38,9 +39,6 @@ public class BasketController {
 
     @Value("${images.folder}")
     private String IMAGES_FOLDER;
-
-    @Value("${main.path}")
-    private String MAIN_PATH;
 
     @Value("${api.url.base}")
     private String API_URL;
@@ -168,6 +166,7 @@ public class BasketController {
     }
 
     //Метод вывода чека
+
     @RequestMapping(value = "/buyList",method = RequestMethod.GET)
     private RestError buyList(
             @RequestParam(name = "userId") Long userId
@@ -234,15 +233,50 @@ public class BasketController {
     private RestError allProducts(){
         log.info(" < allProducts");
         List<Product> productList = productRepo.findAllAvailable();
-        for (Product product:productList) {
-            if(!product.getImageUrl().startsWith(API_URL)){
-                product.setImageUrl(API_URL + "get-image/" + product.getImageUrl());
-                productRepo.save(product);
-            }
-        }
         log.info("> allProducts");
         return new RestError(productList,HttpStatus.OK);
     }
+
+    //Метод вывода категорий
+
+    @RequestMapping(value = "/getCategories", method = RequestMethod.GET)
+    private RestError getCategories(){
+        log.info("> getCategories");
+        List<Product> fruits = productRepo.findByCategory(Categories.FRUITS.getCategory());
+        List<Product> vegetables = productRepo.findByCategory(Categories.VEGETABLES.getCategory());
+        List<Product> dairies = productRepo.findByCategory(Categories.DAIRIES.getCategory());
+        List<Product> drinks = productRepo.findByCategory(Categories.DRINKS.getCategory());
+        List<Product> meats = productRepo.findByCategory(Categories.MEATS.getCategory());
+        List<Product> sweets = productRepo.findByCategory(Categories.SWEETS.getCategory());
+        List<Product> bakeries = productRepo.findByCategory(Categories.BAKERIES.getCategory());
+        log.info("< getCategories");
+        RestError re = new RestError();
+        re.setData(new CategoriesReply(fruits,vegetables,dairies,drinks,meats,sweets,bakeries));
+        return re;
+    }
+
+    //Метод заполнения аккаунта
+
+//    @RequestMapping(value = "/addInfo", method = RequestMethod.POST)
+//    private RestError addInfo(
+//            @RequestBody String json
+//    ) {
+//        log.info("> addInfo");
+//        Long userId = null;
+//        String name = null;
+//        String lastName = null;
+//        Integer age = null;
+//        String userInfo = null;
+//
+//        try {
+//            JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
+//            userId = jo.get("userId").getAsLong();
+//            name = jo.get("name").getAsString();
+//            lastName = jo.get("lastName").getAsString();
+//            age = jo.get("age").getAsInt();
+//            userInfo = jo.get()
+//        }
+//    }
 
     //Метод создания карты пользователю
 
@@ -311,6 +345,8 @@ public class BasketController {
 
         return basketService.checking(card,basket);
     }
+
+    // Метод вывода картинки продукта
 
     @RequestMapping(value = "/get-image/{imgFileName}", method = RequestMethod.GET)
     public RestError getImage(

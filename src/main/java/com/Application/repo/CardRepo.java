@@ -1,6 +1,6 @@
 package com.Application.repo;
 
-import com.Application.object.Card;
+import com.Application.dto.Card;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

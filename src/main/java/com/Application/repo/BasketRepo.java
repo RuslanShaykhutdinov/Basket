@@ -1,7 +1,7 @@
 package com.Application.repo;
 
-import com.Application.object.Basket;
-import com.Application.object.ProductItem;
+import com.Application.dto.Basket;
+import com.Application.dto.ProductItem;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

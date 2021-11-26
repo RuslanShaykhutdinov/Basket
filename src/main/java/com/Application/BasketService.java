@@ -1,6 +1,6 @@
 package com.Application;
 
-import com.Application.object.*;
+import com.Application.dto.*;
 import com.Application.replies.BuyListReply;
 import com.Application.repo.CardRepo;
 import com.Application.repo.ProductItemRepo;

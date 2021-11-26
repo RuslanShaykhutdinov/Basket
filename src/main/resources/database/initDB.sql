@@ -6,7 +6,8 @@ CREATE TABLE if NOT EXISTS products(
     weight INTEGER NOT NULL ,
     info VARCHAR(200),
     availability BOOLEAN NOT NULL,
-    image_url VARCHAR(200)
+    image_url VARCHAR(200),
+    category_id BIGSERIAL NOT NULL
 );
 
 CREATE TABLE if NOT EXISTS users(

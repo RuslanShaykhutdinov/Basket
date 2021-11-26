@@ -1,4 +1,4 @@
-package com.Application.object;
+package com.Application.dto;
 
 import javax.persistence.*;
 import java.util.Objects;

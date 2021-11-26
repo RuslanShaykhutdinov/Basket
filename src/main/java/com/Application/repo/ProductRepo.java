@@ -1,6 +1,6 @@
 package com.Application.repo;
 
-import com.Application.object.Product;
+import com.Application.dto.Product;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -18,4 +18,7 @@ public interface ProductRepo extends CrudRepository<Product,Long> {
 
     @Query("SELECT p FROM Product p WHERE p.name = ?1")
     Product findByName(String name);
+
+    @Query("SELECT p FROM Product p WHERE p.categoryId = ?1")
+    List<Product> findByCategory(Long categoryId);
 }
