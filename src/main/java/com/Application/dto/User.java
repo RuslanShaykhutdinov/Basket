@@ -26,6 +26,10 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
 
+    @Column(name = "sex")
+    private String sex;
+
+    //TODO переделать возраст с интежер на Date()
     @Column(name = "age")
     private Integer age;
 
@@ -67,6 +71,14 @@ public class User {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getSex() {
+        return sex;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
     }
 
     public Integer getAge() {
@@ -122,12 +134,12 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return passwordCheck == user.passwordCheck && blocked == user.blocked && Objects.equals(userId, user.userId) && login.equals(user.login) && password.equals(user.password) && name.equals(user.name) && Objects.equals(lastName, user.lastName) && age.equals(user.age) && Objects.equals(userInfo, user.userInfo);
+        return passwordCheck == user.passwordCheck && blocked == user.blocked && userId.equals(user.userId) && login.equals(user.login) && password.equals(user.password) && Objects.equals(name, user.name) && Objects.equals(lastName, user.lastName) && sex == user.sex && Objects.equals(age, user.age) && Objects.equals(userInfo, user.userInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, login, password, name, lastName, age, userInfo, passwordCheck, blocked);
+        return Objects.hash(userId, login, password, name, lastName, sex, age, userInfo, passwordCheck, blocked);
     }
 
     @Override
@@ -138,6 +150,7 @@ public class User {
                 ", password='" + password + '\'' +
                 ", name='" + name + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", sex=" + sex +
                 ", age=" + age +
                 ", userInfo='" + userInfo + '\'' +
                 ", passwordCheck=" + passwordCheck +

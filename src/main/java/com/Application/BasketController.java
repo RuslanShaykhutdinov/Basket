@@ -1,14 +1,15 @@
 package com.Application;
 
 import com.Application.dto.*;
+import com.Application.enums.Categories;
 import com.Application.replies.BuyListReply;
-import com.Application.replies.CategoriesReply;
 import com.Application.replies.CategoryReply;
 import com.Application.replies.LogInReply;
 import com.Application.repo.BasketRepo;
 import com.Application.repo.CardRepo;
 import com.Application.repo.ProductRepo;
 import com.Application.repo.UserRepo;
+import com.Application.settings.RestError;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.io.IOUtils;
@@ -29,7 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static com.Application.Utils.*;
+import static com.Application.settings.Utils.*;
 
 
 @RestController
@@ -260,8 +261,9 @@ public class BasketController {
         CategoryReply sweetsReply = new CategoryReply(Categories.SWEETS.getName(), sweets);
         CategoryReply bakeriesReply = new CategoryReply(Categories.BAKERIES.getName(), bakeries);
         log.info("< getCategories");
+        Object[] data = new Object[]{fruitReply,vegetableReply,dairiesReply,drinksReply,meatsReply,sweetsReply,bakeriesReply};
         RestError re = new RestError();
-        re.setData(new CategoriesReply(fruitReply,vegetableReply,dairiesReply,drinksReply,meatsReply,sweetsReply,bakeriesReply));
+        re.setData(data);
         return re;
     }
 
@@ -292,6 +294,7 @@ public class BasketController {
         String lastName = null;
         Integer age = null;
         String userInfo = null;
+        String sex = null;
 
         try {
             JsonObject jo = JsonParser.parseString(json).getAsJsonObject();
@@ -300,6 +303,7 @@ public class BasketController {
             lastName = getSafeString(jo,"lastName",null);
             age = getSafeInt(jo,"age",null);
             userInfo = getSafeString(jo,"userInfo",null);
+            sex = getSafeString(jo,"sex",null);
         } catch (Exception e){
             log.error("Couldn't create json");
         }
@@ -314,6 +318,7 @@ public class BasketController {
         user.setLastName(lastName);
         user.setAge(age);
         user.setUserInfo(userInfo);
+        user.setSex(sex);
         userRepo.save(user);
         return new RestError("OK",HttpStatus.OK);
     }

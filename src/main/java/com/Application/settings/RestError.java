@@ -1,4 +1,4 @@
-package com.Application;
+package com.Application.settings;
 
 import org.springframework.http.HttpStatus;
 

@@ -6,6 +6,7 @@ import com.Application.repo.CardRepo;
 import com.Application.repo.ProductItemRepo;
 import com.Application.repo.ProductRepo;
 import com.Application.repo.BasketRepo;
+import com.Application.settings.RestError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class BasketService {
         basketRepo.save(basket);
         log.info("< Service login");
     }
-    public RestError adding(Product product,Integer weight, Basket basket){
+    public RestError adding(Product product, Integer weight, Basket basket){
         log.info("> Service adding");
         int difWeight = product.getWeight() - weight;
         if (difWeight < 0) {

@@ -1,4 +1,4 @@
-package com.Application;
+package com.Application.enums;
 
 public enum Categories {
     FRUITS{

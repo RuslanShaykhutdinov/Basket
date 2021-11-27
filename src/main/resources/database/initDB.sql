@@ -16,6 +16,7 @@ CREATE TABLE if NOT EXISTS users(
     login VARCHAR(25) NOT NULL,
     password VARCHAR(200) NOT NULL,
     name VARCHAR(25),
+    sex VARCHAR (25),
     last_name VARCHAR(25),
     age INTEGER,
     user_info VARCHAR(200),
