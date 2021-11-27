@@ -1,20 +1,15 @@
 package com.Application.replies;
 
-import com.Application.dto.Product;
-
-import java.util.List;
-
 public class CategoriesReply {
-    private List<Product> fruits;
-    private List<Product> vegetables;
-    private List<Product> dairies;
-    private List<Product> drinks;
-    private List<Product> meats;
-    private List<Product> sweets;
-    private List<Product> bakeries;
+    private CategoryReply fruits;
+    private CategoryReply vegetables;
+    private CategoryReply dairies;
+    private CategoryReply drinks;
+    private CategoryReply meats;
+    private CategoryReply sweets;
+    private CategoryReply bakeries;
 
-
-    public CategoriesReply(List<Product> fruits, List<Product> vegetables, List<Product> dairies, List<Product> drinks, List<Product> meats, List<Product> sweets, List<Product> bakeries) {
+    public CategoriesReply(CategoryReply fruits, CategoryReply vegetables, CategoryReply dairies, CategoryReply drinks, CategoryReply meats, CategoryReply sweets, CategoryReply bakeries) {
         this.fruits = fruits;
         this.vegetables = vegetables;
         this.dairies = dairies;
@@ -24,59 +19,59 @@ public class CategoriesReply {
         this.bakeries = bakeries;
     }
 
-    public List<Product> getFruits() {
+    public CategoryReply getFruits() {
         return fruits;
     }
 
-    public void setFruits(List<Product> fruits) {
+    public void setFruits(CategoryReply fruits) {
         this.fruits = fruits;
     }
 
-    public List<Product> getVegetables() {
+    public CategoryReply getVegetables() {
         return vegetables;
     }
 
-    public void setVegetables(List<Product> vegetables) {
+    public void setVegetables(CategoryReply vegetables) {
         this.vegetables = vegetables;
     }
 
-    public List<Product> getDairies() {
+    public CategoryReply getDairies() {
         return dairies;
     }
 
-    public void setDairies(List<Product> dairies) {
+    public void setDairies(CategoryReply dairies) {
         this.dairies = dairies;
     }
 
-    public List<Product> getDrinks() {
+    public CategoryReply getDrinks() {
         return drinks;
     }
 
-    public void setDrinks(List<Product> drinks) {
+    public void setDrinks(CategoryReply drinks) {
         this.drinks = drinks;
     }
 
-    public List<Product> getMeats() {
+    public CategoryReply getMeats() {
         return meats;
     }
 
-    public void setMeats(List<Product> meats) {
+    public void setMeats(CategoryReply meats) {
         this.meats = meats;
     }
 
-    public List<Product> getSweets() {
+    public CategoryReply getSweets() {
         return sweets;
     }
 
-    public void setSweets(List<Product> sweets) {
+    public void setSweets(CategoryReply sweets) {
         this.sweets = sweets;
     }
 
-    public List<Product> getBakeries() {
+    public CategoryReply getBakeries() {
         return bakeries;
     }
 
-    public void setBakeries(List<Product> bakeries) {
+    public void setBakeries(CategoryReply bakeries) {
         this.bakeries = bakeries;
     }
 

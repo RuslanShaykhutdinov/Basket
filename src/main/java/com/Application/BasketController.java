@@ -3,6 +3,7 @@ package com.Application;
 import com.Application.dto.*;
 import com.Application.replies.BuyListReply;
 import com.Application.replies.CategoriesReply;
+import com.Application.replies.CategoryReply;
 import com.Application.replies.LogInReply;
 import com.Application.repo.BasketRepo;
 import com.Application.repo.CardRepo;
@@ -24,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -249,11 +251,21 @@ public class BasketController {
         List<Product> meats = productRepo.findByCategory(Categories.MEATS.getCategory());
         List<Product> sweets = productRepo.findByCategory(Categories.SWEETS.getCategory());
         List<Product> bakeries = productRepo.findByCategory(Categories.BAKERIES.getCategory());
+
+        CategoryReply fruitReply = new CategoryReply(Categories.FRUITS.getName(), fruits);
+        CategoryReply vegetableReply = new CategoryReply(Categories.VEGETABLES.getName(), vegetables);
+        CategoryReply dairiesReply = new CategoryReply(Categories.DAIRIES.getName(), dairies);
+        CategoryReply drinksReply = new CategoryReply(Categories.DRINKS.getName(), drinks);
+        CategoryReply meatsReply = new CategoryReply(Categories.MEATS.getName(), meats);
+        CategoryReply sweetsReply = new CategoryReply(Categories.SWEETS.getName(), sweets);
+        CategoryReply bakeriesReply = new CategoryReply(Categories.BAKERIES.getName(), bakeries);
         log.info("< getCategories");
         RestError re = new RestError();
-        re.setData(new CategoriesReply(fruits,vegetables,dairies,drinks,meats,sweets,bakeries));
+        re.setData(new CategoriesReply(fruitReply,vegetableReply,dairiesReply,drinksReply,meatsReply,sweetsReply,bakeriesReply));
         return re;
     }
+
+
 
     @RequestMapping(value = "/getCategory", method = RequestMethod.GET)
     private RestError getCategory(
@@ -261,9 +273,11 @@ public class BasketController {
     ){
         log.info("> getCategory");
         List<Product> items = productRepo.findByCategory(categoryId);
-        // возможно нужно передавать имя категории
+        Categories category = Arrays.stream(Categories.values()).filter(categories -> categories.getCategory().equals(categoryId)).findFirst().orElse(null);
         log.info("< getCategory");
-        return new RestError(items,HttpStatus.OK);
+        RestError re = new RestError();
+        re.setData(new CategoryReply(category.getName(), items));
+        return re;
     }
 
     //Метод заполнения аккаунта
