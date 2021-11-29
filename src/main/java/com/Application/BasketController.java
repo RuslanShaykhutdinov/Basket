@@ -26,7 +26,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,6 +39,7 @@ public class BasketController {
 
     private static final Logger log = LoggerFactory.getLogger(BasketController.class);
     private static final Integer START_POINT_SUM = 1_000_000;
+    private static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
     private static final Long ALCOHOL_ITEM = 1013L;
 
     @Value("${images.folder}")
@@ -117,10 +119,9 @@ public class BasketController {
                 userRepo.save(user);
             }
         }
-        log.info("Пользователь " + user.getUserId() + " успешно вошел в приложение");
-        log.info("< login");
         RestError re = new RestError();
         re.setData(new LogInReply(user.getUserId(),addInfo));
+        log.info("< login");
         return re;
     }
 
@@ -144,7 +145,7 @@ public class BasketController {
         } catch (Exception e){
             log.info("Couldn't create a json");
         }
-
+        //TODO добавить проверку что пользователь не перебрал товар и что он не достиг максимума по закупке!
         Basket basket = basketRepo.findByUserId(userId).orElse(null);
         Product product = productRepo.findProduct(productId).orElse(null);
         if (basket == null){
@@ -181,9 +182,9 @@ public class BasketController {
             return new RestError(13,"Shopping list is empty",HttpStatus.BAD_REQUEST);
         }
         Integer fullPrice = basketService.findFullPrice(productList);
-        log.info("< buyList");
         RestError re = new RestError();
         re.setData(new BuyListReply(productList,fullPrice));
+        log.info("< buyList");
         return re;
     }
 
@@ -260,27 +261,13 @@ public class BasketController {
         CategoryReply meatsReply = new CategoryReply(Categories.MEATS.getName(), meats);
         CategoryReply sweetsReply = new CategoryReply(Categories.SWEETS.getName(), sweets);
         CategoryReply bakeriesReply = new CategoryReply(Categories.BAKERIES.getName(), bakeries);
-        log.info("< getCategories");
         Object[] data = new Object[]{fruitReply,vegetableReply,dairiesReply,drinksReply,meatsReply,sweetsReply,bakeriesReply};
         RestError re = new RestError();
         re.setData(data);
+        log.info("< getCategories");
         return re;
     }
 
-
-
-    @RequestMapping(value = "/getCategory", method = RequestMethod.GET)
-    private RestError getCategory(
-            @RequestParam Long categoryId
-    ){
-        log.info("> getCategory");
-        List<Product> items = productRepo.findByCategory(categoryId);
-        Categories category = Arrays.stream(Categories.values()).filter(categories -> categories.getCategory().equals(categoryId)).findFirst().orElse(null);
-        log.info("< getCategory");
-        RestError re = new RestError();
-        re.setData(new CategoryReply(category.getName(), items));
-        return re;
-    }
 
     //Метод заполнения аккаунта
 
@@ -292,7 +279,7 @@ public class BasketController {
         Long userId = null;
         String name = null;
         String lastName = null;
-        Integer age = null;
+        String date = null;
         String userInfo = null;
         String sex = null;
 
@@ -301,7 +288,7 @@ public class BasketController {
             userId = getSafeLong(jo,"userId",null);
             name = getSafeString(jo,"name",null);
             lastName = getSafeString(jo,"lastName",null);
-            age = getSafeInt(jo,"age",null);
+            date = getSafeString(jo,"date",null);
             userInfo = getSafeString(jo,"userInfo",null);
             sex = getSafeString(jo,"sex",null);
         } catch (Exception e){
@@ -316,10 +303,15 @@ public class BasketController {
         }
         user.setName(name);
         user.setLastName(lastName);
-        user.setAge(age);
+        try {
+            user.setBirthday(format.parse(date));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         user.setUserInfo(userInfo);
         user.setSex(sex);
         userRepo.save(user);
+        log.info("< addInfo");
         return new RestError("OK",HttpStatus.OK);
     }
 
@@ -387,7 +379,7 @@ public class BasketController {
             log.error("Пользователь с таким id " + userId + "не найден / basket not found");
             return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
         }
-
+        log.info("< payment");
         return basketService.checking(card,basket);
     }
 

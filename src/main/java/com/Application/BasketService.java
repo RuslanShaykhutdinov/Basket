@@ -30,6 +30,7 @@ public class BasketService {
     private final ProductItemRepo productItemRepo;
 
     private static final int INITIAL_SUM = 0;
+    private static final long ADULTHOOD = (16 * 365 + 5 * 366) * 24 * 60 * 60 * 1000L;
 
     @Autowired
     public BasketService(ProductRepo productRepo, BasketRepo basketRepo, CardRepo cardRepo, ProductItemRepo productItemRepo) {
@@ -84,11 +85,11 @@ public class BasketService {
     public boolean checkAge(Basket basket) {
         log.info("> Service checkAge");
         boolean allowed = true;
-        Integer age = basket.getUser().getAge();
-        if(age == null){
+        Date date = basket.getUser().getBirthday();
+        if(date == null){
             allowed = false;
         } else {
-            if (age < 21) {
+            if (Math.abs(new Date().getTime() - date.getTime()) < ADULTHOOD) {
                 allowed = false;
             }
         }
@@ -124,7 +125,6 @@ public class BasketService {
         cleanBasket(basket);
         log.info("Оплата прошла успешно");
         log.info("< Service checking");
-        log.info("< payment");
         return re;
     }
 
@@ -140,24 +140,24 @@ public class BasketService {
             basketRepo.saveAll(baskets);
         }
         productRepo.save(product);
-        log.info("> Service changeProducts");
+        log.info("< Service changeProducts");
     }
 
     public Integer findFullPrice(List<ProductItem> productList) {
-        log.info("< Service findFullPrice");
+        log.info("> Service findFullPrice");
         int fullPrice = INITIAL_SUM;
         for (ProductItem product: productList) {
             fullPrice += product.getPrice() * product.getWeight();
         }
-        log.info("> Service findFullPrice");
+        log.info("< Service findFullPrice");
         return fullPrice;
     }
 
     public void cleanBasket(Basket basket) {
-        log.info("< Service cleanBasket");
+        log.info("> Service cleanBasket");
         basket.setProductList(new LinkedList<>());
         log.info("Корзина очищена!");
         basketRepo.save(basket);
-        log.info("> Service cleanBasket");
+        log.info("< Service cleanBasket");
     }
 }

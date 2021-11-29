@@ -1,11 +1,13 @@
 package com.Application.dto;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
 @Table(name = "users")
 public class User {
+
     @Id
     @SequenceGenerator(name="user_id_Generator", sequenceName = "user_id_seq", schema = "public", initialValue = 1, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "user_id_Generator")
@@ -29,9 +31,9 @@ public class User {
     @Column(name = "sex")
     private String sex;
 
-    //TODO переделать возраст с интежер на Date()
-    @Column(name = "age")
-    private Integer age;
+
+    @Column(name = "birthday")
+    private Date birthday;
 
     @Column(name = "user_info")
     private String userInfo;
@@ -81,12 +83,12 @@ public class User {
         this.sex = sex;
     }
 
-    public Integer getAge() {
-        return age;
+    public Date getBirthday() {
+        return birthday;
     }
 
-    public void setAge(Integer age) {
-        this.age = age;
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
     }
 
     public String getUserInfo() {
@@ -134,12 +136,12 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return passwordCheck == user.passwordCheck && blocked == user.blocked && userId.equals(user.userId) && login.equals(user.login) && password.equals(user.password) && Objects.equals(name, user.name) && Objects.equals(lastName, user.lastName) && sex == user.sex && Objects.equals(age, user.age) && Objects.equals(userInfo, user.userInfo);
+        return passwordCheck == user.passwordCheck && blocked == user.blocked && userId.equals(user.userId) && login.equals(user.login) && password.equals(user.password) && Objects.equals(name, user.name) && Objects.equals(lastName, user.lastName) && Objects.equals(sex, user.sex) && Objects.equals(birthday, user.birthday) && Objects.equals(userInfo, user.userInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, login, password, name, lastName, sex, age, userInfo, passwordCheck, blocked);
+        return Objects.hash(userId, login, password, name, lastName, sex, birthday, userInfo, passwordCheck, blocked);
     }
 
     @Override
@@ -150,8 +152,8 @@ public class User {
                 ", password='" + password + '\'' +
                 ", name='" + name + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", sex=" + sex +
-                ", age=" + age +
+                ", sex='" + sex + '\'' +
+                ", birthday=" + birthday +
                 ", userInfo='" + userInfo + '\'' +
                 ", passwordCheck=" + passwordCheck +
                 ", blocked=" + blocked +
