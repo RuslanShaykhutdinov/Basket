@@ -58,13 +58,13 @@ public class BasketService {
         }
         if(product.getAvailability()){
             ProductItem item = new ProductItem();
+            item.setProductId(product.getProductId());
             item.setName(product.getName());
             item.setPrice(product.getPrice());
             item.setWeight(weight);
             productItemRepo.save(item);
             List<ProductItem> productList = basket.getProductList();
-            List<ProductItem> sameProduct = productList.stream().filter(p -> p.getName().equals(item.getName())).collect(Collectors.toList());
-            log.info(sameProduct.toString());
+            List<ProductItem> sameProduct = productList.stream().filter(p -> p.getProductId().equals(item.getProductId())).collect(Collectors.toList());
             if (!sameProduct.isEmpty()){
                 ProductItem previousItem = sameProduct.get(0);
                 item.setWeight(item.getWeight() + previousItem.getWeight());
@@ -159,5 +159,28 @@ public class BasketService {
         log.info("Корзина очищена!");
         basketRepo.save(basket);
         log.info("< Service cleanBasket");
+    }
+
+    public RestError removingByNum(Product product, Basket basket, Integer weight) {
+        log.info("> Service removingByNum");
+        List<ProductItem> productList = basket.getProductList();
+        ProductItem item = productList.stream().filter(productItem -> productItem.getProductId().equals(product.getProductId())).findFirst().orElse(null);
+        int newWeight = 0;
+        if (item != null) {
+            newWeight = item.getWeight() - weight;
+            if (newWeight > 0){
+                item.setWeight(newWeight);
+                productItemRepo.save(item);
+            } else {
+                // если пользователь ввел меньше чем у него было в корзине то продукт удаляется
+                productList.remove(item);
+                basket.setProductList(productList);
+            }
+            basketRepo.save(basket);
+        } else {
+            return  new RestError(15,"UnexpectedError",HttpStatus.BAD_REQUEST);
+        }
+        log.info("< removingByNum");
+        return new RestError("OK",HttpStatus.OK);
     }
 }

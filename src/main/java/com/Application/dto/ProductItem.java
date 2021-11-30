@@ -5,11 +5,17 @@ import javax.persistence.*;
 @Entity
 @Table(name = "product_item")
 public class ProductItem {
+
     @Id
     @SequenceGenerator(name="productItemIdGenerator", sequenceName = "product_item_id_seq", schema = "public", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "productItemIdGenerator")
     @Column(name = "id")
     private Long id;
+
+    @Basic
+    @Column(name = "productId")
+    private Long productId;
+
     @Basic
     @Column(name = "name")
     private String name;
@@ -32,6 +38,14 @@ public class ProductItem {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
     }
 
     public String getName() {
@@ -62,6 +76,7 @@ public class ProductItem {
     public String toString() {
         return "ProductItem{" +
                 "id=" + id +
+                ", productId=" + productId +
                 ", name='" + name + '\'' +
                 ", price=" + price +
                 ", weight=" + weight +

@@ -231,6 +231,30 @@ public class BasketController {
         return re;
     }
 
+    @RequestMapping(value = "/removeFromBasketByNumber", method = RequestMethod.DELETE)
+    private RestError removeFromBasketByNumber(
+            @RequestParam(name = "productId") Long productId,
+            @RequestParam(name = "userId") Long userId,
+            @RequestParam(name = "weight") Integer weight
+    ){
+        log.info("> removeFromBasketByNumber");
+        Product product = productRepo.findById(productId).orElse(null);
+        Basket basket = basketRepo.findByUserId(userId).orElse(null);
+        if (product == null){
+            log.info("Продукт не найден в базе! Введенный id " + productId);
+            log.info("< removeFromBasket");
+            return  new RestError(3,"Product not found / wrong id",HttpStatus.BAD_REQUEST);
+        }
+        if(basket == null){
+            log.error("Пользователь с таким id " + userId + "не найден / basket not found");
+            log.info("< removeFromBasket");
+            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
+        }
+        RestError re = basketService.removingByNum(product,basket,weight);
+        log.info("< removeFromBasketByNumber");
+        return re;
+    }
+
     //Метод вывода всего доступного товара
 
     @RequestMapping(value = "/allProducts",method = RequestMethod.GET)
