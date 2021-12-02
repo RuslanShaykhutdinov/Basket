@@ -7,10 +7,17 @@ import java.util.List;
 public class BuyListReply {
     private List<ProductItem> productList;
     private Integer fullPrice;
+    private Integer productsNum;
 
     public BuyListReply(List<ProductItem> productList, Integer fullPrice) {
         this.productList = productList;
         this.fullPrice = fullPrice;
+    }
+
+    public BuyListReply(List<ProductItem> productList, Integer fullPrice, Integer productsNum) {
+        this.productList = productList;
+        this.fullPrice = fullPrice;
+        this.productsNum = productsNum;
     }
 
     public List<ProductItem> getProductList() {
@@ -29,11 +36,20 @@ public class BuyListReply {
         this.fullPrice = fullPrice;
     }
 
+    public Integer getProductsNum() {
+        return productsNum;
+    }
+
+    public void setProductsNum(Integer productsNum) {
+        this.productsNum = productsNum;
+    }
+
     @Override
     public String toString() {
         return "BuyListReply{" +
                 "productList=" + productList +
                 ", fullPrice=" + fullPrice +
+                ", productsNum=" + productsNum +
                 '}';
     }
 }

@@ -182,8 +182,9 @@ public class BasketController {
             return new RestError(13,"Shopping list is empty",HttpStatus.BAD_REQUEST);
         }
         Integer fullPrice = basketService.findFullPrice(productList);
+        Integer count = productList.size();
         RestError re = new RestError();
-        re.setData(new BuyListReply(productList,fullPrice));
+        re.setData(new BuyListReply(productList,fullPrice,count));
         log.info("< buyList");
         return re;
     }
@@ -208,28 +209,28 @@ public class BasketController {
 
     //Метод удаления товара пользователя по ID
 
-    @RequestMapping(value = "/removeFromBasket",method = RequestMethod.DELETE)
-    private RestError removeFromBasket(
-            @RequestParam(name = "productId") Long productId,
-            @RequestParam(name = "userId") Long userId
-    ){
-        log.info("> removeFromBasket");
-        Basket basket = basketRepo.findByUserId(userId).orElse(null);
-        Product product = productRepo.findById(productId).orElse(null);
-        if(basket == null){
-            log.error("Пользователь с таким id " + userId + "не найден / basket not found");
-            log.info("< removeFromBasket");
-            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
-        }
-        if (product == null){
-            log.info("Продукт не найден в базе! Введенный id " + productId);
-            log.info("< removeFromBasket");
-            return  new RestError(3,"Product not found / wrong id",HttpStatus.BAD_REQUEST);
-        }
-        RestError re = basketService.removing(product,basket);
-        log.info("< removeFromBasket");
-        return re;
-    }
+//    @RequestMapping(value = "/removeFromBasket",method = RequestMethod.DELETE)
+//    private RestError removeFromBasket(
+//            @RequestParam(name = "productId") Long productId,
+//            @RequestParam(name = "userId") Long userId
+//    ){
+//        log.info("> removeFromBasket");
+//        Basket basket = basketRepo.findByUserId(userId).orElse(null);
+//        Product product = productRepo.findById(productId).orElse(null);
+//        if(basket == null){
+//            log.error("Пользователь с таким id " + userId + "не найден / basket not found");
+//            log.info("< removeFromBasket");
+//            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
+//        }
+//        if (product == null){
+//            log.info("Продукт не найден в базе! Введенный id " + productId);
+//            log.info("< removeFromBasket");
+//            return  new RestError(3,"Product not found / wrong id",HttpStatus.BAD_REQUEST);
+//        }
+//        RestError re = basketService.removing(product,basket);
+//        log.info("< removeFromBasket");
+//        return re;
+//    }
 
     @RequestMapping(value = "/removeFromBasketByNumber", method = RequestMethod.DELETE)
     private RestError removeFromBasketByNumber(

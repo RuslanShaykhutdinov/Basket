@@ -2,10 +2,10 @@ package com.Application;
 
 import com.Application.dto.*;
 import com.Application.replies.BuyListReply;
+import com.Application.repo.BasketRepo;
 import com.Application.repo.CardRepo;
 import com.Application.repo.ProductItemRepo;
 import com.Application.repo.ProductRepo;
-import com.Application.repo.BasketRepo;
 import com.Application.settings.RestError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import static java.lang.Math.abs;
 
@@ -99,13 +100,13 @@ public class BasketService {
         return  allowed;
     }
 
-    public RestError removing(Product product, Basket basket) {
-        log.info("> Service removing");
-        basket.setProductList(basket.getProductList().stream().filter(productItem -> !productItem.getName().equals(product.getName())).collect(Collectors.toList()));
-        basketRepo.save(basket);
-        log.info("< Service removing");
-        return new RestError("Продукт " + product.getName() + " успешно удален из вашего списка покупок!",HttpStatus.OK);
-    }
+//    public RestError removing(Product product, Basket basket) {
+//        log.info("> Service removing");
+//        basket.setProductList(basket.getProductList().stream().filter(productItem -> !productItem.getName().equals(product.getName())).collect(Collectors.toList()));
+//        basketRepo.save(basket);
+//        log.info("< Service removing");
+//        return new RestError("Продукт " + product.getName() + " успешно удален из вашего списка покупок!",HttpStatus.OK);
+//    }
 
     public RestError checking(Card card, Basket basket) {
         log.info("> Service checking");
@@ -114,7 +115,7 @@ public class BasketService {
         int remainder = card.getAmountOfMoney();
         if(sum < remainder){
             productList.forEach(this::changeProducts);
-            card.setAmountOfMoney(remainder-sum);
+            card.setAmountOfMoney(remainder - sum);
             cardRepo.save(card);
         } else {
             log.error("Недостаточно средств на карте!");
