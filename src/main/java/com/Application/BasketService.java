@@ -57,22 +57,24 @@ public class BasketService {
             return new RestError(4," Перевес", "Вес товара превышает запас на " + abs(difWeight),HttpStatus.BAD_REQUEST);
         }
         if(product.getAvailability()){
-            ProductItem item = new ProductItem();
-            item.setProductId(product.getProductId());
-            item.setName(product.getName());
-            item.setPrice(product.getPrice());
-            item.setWeight(weight);
-            productItemRepo.save(item);
             List<ProductItem> productList = basket.getProductList();
-            List<ProductItem> sameProduct = productList.stream().filter(p -> p.getProductId().equals(item.getProductId())).collect(Collectors.toList());
-            if (!sameProduct.isEmpty()){
-                ProductItem previousItem = sameProduct.get(0);
-                item.setWeight(item.getWeight() + previousItem.getWeight());
+            ProductItem sameProduct = productList.stream().filter(p -> p.getProductId().equals(product.getProductId())).findFirst().orElse(null);
+            if (sameProduct == null){
+                ProductItem item = new ProductItem();
+                item.setProductId(product.getProductId());
+                item.setName(product.getName());
+                item.setPrice(product.getPrice() * weight);
+                item.setWeight(weight);
                 productItemRepo.save(item);
-                productList.remove(previousItem);
+                productList.add(item);
+                basketRepo.save(basket);
+            } else {
+                int newWeight = sameProduct.getWeight() + weight;
+                sameProduct.setWeight(newWeight);
+                sameProduct.setPrice(product.getPrice() * newWeight);
+                productItemRepo.save(sameProduct);
             }
-            productList.add(item);
-            basketRepo.save(basket);
+
             log.info("< Service adding");
             return new RestError(product.getName() + " успешно добавлен в вашу корзину!", HttpStatus.OK);
         } else {
