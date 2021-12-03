@@ -28,6 +28,10 @@ public class ProductItem {
     @Column(name = "weight")
     private Integer weight;
 
+    @Basic
+    @Column(name = "image_url")
+    private String imageUrl;
+
     public ProductItem() {
 
     }
@@ -72,6 +76,14 @@ public class ProductItem {
         this.weight = weight;
     }
 
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     @Override
     public String toString() {
         return "ProductItem{" +
@@ -80,6 +92,7 @@ public class ProductItem {
                 ", name='" + name + '\'' +
                 ", price=" + price +
                 ", weight=" + weight +
+                ", imageUrl='" + imageUrl + '\'' +
                 '}';
     }
 }
