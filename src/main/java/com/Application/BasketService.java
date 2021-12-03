@@ -66,6 +66,7 @@ public class BasketService {
                 item.setName(product.getName());
                 item.setPrice(product.getPrice() * weight);
                 item.setWeight(weight);
+                item.setImageUrl(product.getImageUrl());
                 productItemRepo.save(item);
                 productList.add(item);
                 basketRepo.save(basket);

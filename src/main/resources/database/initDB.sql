@@ -42,5 +42,6 @@ CREATE TABLE if NOT EXISTS product_item(
     id BIGSERIAL PRIMARY KEY ,
     name VARCHAR(25) NOT NULL,
     price INTEGER NOT NULL,
-    weight INTEGER NOT NULL
+    weight INTEGER NOT NULL,
+    image_url VARCHAR(100) NOT NULL
 );
