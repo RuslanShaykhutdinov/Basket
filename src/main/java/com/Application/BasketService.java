@@ -76,9 +76,9 @@ public class BasketService {
                 sameProduct.setPrice(product.getPrice() * newWeight);
                 productItemRepo.save(sameProduct);
             }
-
+            Integer count = productList.size();
             log.info("< Service adding");
-            return new RestError(product.getName() + " успешно добавлен в вашу корзину!", HttpStatus.OK);
+            return new RestError(count, HttpStatus.OK);
         } else {
             log.error("Товар закончился!");
             log.info("< Service adding");

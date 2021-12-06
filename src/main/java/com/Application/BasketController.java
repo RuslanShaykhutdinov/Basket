@@ -145,7 +145,6 @@ public class BasketController {
         } catch (Exception e){
             log.info("Couldn't create a json");
         }
-        //TODO добавить проверку что пользователь не перебрал товар и что он не достиг максимума по закупке!
         Basket basket = basketRepo.findByUserId(userId).orElse(null);
         Product product = productRepo.findProduct(productId).orElse(null);
         if (basket == null){
@@ -157,6 +156,11 @@ public class BasketController {
             log.info("Продукт не найден в базе! Введенный id " + productId);
             log.info("< addToBasket");
             return  new RestError(3,"Product not found / wrong id",HttpStatus.BAD_REQUEST);
+        }
+        if (weight > product.getWeight()){
+            log.info("Недостаточно товара на складе! productId{}", productId);
+            log.info("< addToBasket");
+            return  new RestError(14,"Too much weight", "Too much weight", HttpStatus.BAD_REQUEST);
         }
         if(Objects.equals(product.getProductId(), ALCOHOL_ITEM)){
             if(!basketService.checkAge(basket)){
@@ -182,9 +186,8 @@ public class BasketController {
             return new RestError(13,"Shopping list is empty",HttpStatus.BAD_REQUEST);
         }
         Integer fullPrice = basketService.findFullPrice(productList);
-        Integer count = productList.size();
         RestError re = new RestError();
-        re.setData(new BuyListReply(productList,fullPrice,count));
+        re.setData(new BuyListReply(productList,fullPrice));
         log.info("< buyList");
         return re;
     }
