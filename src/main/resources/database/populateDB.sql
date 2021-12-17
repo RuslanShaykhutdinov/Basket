@@ -6,10 +6,10 @@ INSERT INTO Products VALUES
                          (1004,'Bread', 2000, 100,null,true,'/get-image/Bread.png',7),
                          (1005,'Butter', 25000, 20,null,true,'/get-image/Butter.png',3),
                          (1006,'Cheese', 55000, 50,null,true,'/get-image/Cheese.png',3),
-                         (1007,'Coke', 11000, 120,null,true,'/get-image/Bread.png',4),
+                         (1007,'Orange Juice', 11000, 120,null,true,'/get-image/Juice.png',4),
                          (1008,'Water', 3000, 90,null,true,'/get-image/Water.png',4),
                          (1009,'Fish', 65000, 30,null,true,'/get-image/Fish.png',5),
                          (1010,'Watermelon', 14000, 80,null,true,'/get-image/Watermelon.png',1),
                          (1011,'Garlic', 15000, 10,null,true,'/get-image/Garlic.png',2),
                          (1012,'Chocolate', 15000, 100,null,true,'/get-image/Chocolate.png',6),
-                         (1013,'Alcohol', 35000, 70,null,true,'/get-image/Bread.png',4);
+                         (1013,'Alcohol', 35000, 70,null,true,'/get-image/Alcohol.png',4);
