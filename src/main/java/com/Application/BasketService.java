@@ -176,7 +176,7 @@ public class BasketService {
                 item.setWeight(newWeight);
                 productItemRepo.save(item);
             } else {
-                // если пользователь ввел меньше чем у него было в корзине то продукт удаляется
+                // если пользователь ввел меньше чем у него было в корзине, то продукт удаляется
                 productList.remove(item);
                 basket.setProductList(productList);
             }
@@ -184,7 +184,8 @@ public class BasketService {
         } else {
             return  new RestError(15,"UnexpectedError",HttpStatus.BAD_REQUEST);
         }
+        Integer count = productList.size();
         log.info("< removingByNum");
-        return new RestError("OK",HttpStatus.OK);
+        return new RestError(count,HttpStatus.OK);
     }
 }

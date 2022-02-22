@@ -4,12 +4,14 @@ import com.Application.dto.*;
 import com.Application.enums.Categories;
 import com.Application.replies.BuyListReply;
 import com.Application.replies.CategoryReply;
+import com.Application.replies.GetInfoReply;
 import com.Application.replies.LogInReply;
 import com.Application.repo.BasketRepo;
 import com.Application.repo.CardRepo;
 import com.Application.repo.ProductRepo;
 import com.Application.repo.UserRepo;
 import com.Application.settings.RestError;
+import com.Application.settings.ThreadLanguage;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.io.IOUtils;
@@ -21,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +44,7 @@ public class BasketController {
     private static final Integer START_POINT_SUM = 1_000_000;
     private static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
     private static final Long ALCOHOL_ITEM = 1013L;
+    private static final String HEADER_ACCEPT_LANGUAGE = "Accept-Language";
 
     @Value("${images.folder}")
     private String IMAGES_FOLDER;
@@ -69,9 +73,18 @@ public class BasketController {
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     private RestError logIn(
+            HttpServletRequest request,
             @RequestBody String json
     ){
         log.info("> login");
+
+        String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
+
+        if (lang != null) {
+            ThreadLanguage.setLang(lang);
+        } else {
+            lang = "ru";
+        }
         String logIn = null;
         String password = null;
 
@@ -83,6 +96,7 @@ public class BasketController {
             log.info("Couldn't create a json");
         }
         User user = userRepo.findByLogin(logIn).orElse(null);
+        // Флаг, что пользователю надо показать заполнение инфо
         boolean addInfo = false;
         if (user == null){
             log.info("Пользователь с таким логином " + logIn + " не найден");
@@ -106,6 +120,7 @@ public class BasketController {
                     user.setBlocked(true);
                     userRepo.save(user);
                     log.info("< login");
+
                     return new RestError(11, "Account is deleted",HttpStatus.BAD_REQUEST);
                 }
                 if (user.getPasswordCheck() == 2){
@@ -119,8 +134,15 @@ public class BasketController {
                 userRepo.save(user);
             }
         }
+        GetInfoReply getInfoReply = new GetInfoReply();
+        if (user.getName() != null  && user.getLastName() != null && user.getBirthday() != null){
+            getInfoReply.setName(user.getName());
+            getInfoReply.setLastName(user.getLastName());
+            getInfoReply.setBirthDay(user.getBirthday());
+            getInfoReply.setSmileImage(true);
+        }
         RestError re = new RestError();
-        re.setData(new LogInReply(user.getUserId(),addInfo));
+        re.setData(new LogInReply(getInfoReply,addInfo));
         log.info("< login");
         return re;
     }
@@ -339,8 +361,15 @@ public class BasketController {
         user.setUserInfo(userInfo);
         user.setSex(sex);
         userRepo.save(user);
+        GetInfoReply gir = new GetInfoReply(name,lastName);
+        try {
+            gir.setBirthDay(format.parse(date));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        gir.setSmileImage(true);
         log.info("< addInfo");
-        return new RestError("OK",HttpStatus.OK);
+        return new RestError(gir,HttpStatus.OK);
     }
 
     //Метод создания карты пользователю

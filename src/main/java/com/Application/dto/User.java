@@ -31,7 +31,6 @@ public class User {
     @Column(name = "sex")
     private String sex;
 
-
     @Column(name = "birthday")
     private Date birthday;
 

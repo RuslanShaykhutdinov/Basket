@@ -2,20 +2,20 @@ package com.Application.replies;
 
 public class LogInReply {
 
-    private Long userId;
+    private GetInfoReply getInfoReply;
     private Boolean addInfo;
 
-    public LogInReply(Long userId, Boolean addInfo) {
-        this.userId = userId;
+    public LogInReply(GetInfoReply getInfoReply, Boolean addInfo) {
+        this.getInfoReply = getInfoReply;
         this.addInfo = addInfo;
     }
 
-    public Long getUserId() {
-        return userId;
+    public GetInfoReply getGetInfoReply() {
+        return getInfoReply;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setGetInfoReply(GetInfoReply getInfoReply) {
+        this.getInfoReply = getInfoReply;
     }
 
     public Boolean getAddInfo() {
@@ -29,7 +29,7 @@ public class LogInReply {
     @Override
     public String toString() {
         return "LogInReply{" +
-                "userId=" + userId +
+                "getInfoReply=" + getInfoReply +
                 ", addInfo=" + addInfo +
                 '}';
     }
