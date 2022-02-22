@@ -2,7 +2,12 @@ package com.Application.settings;
 
 import com.google.gson.JsonObject;
 
+import java.text.SimpleDateFormat;
+
 public class Utils {
+
+    public static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
     public static String getSafeString(JsonObject jo, String name, String defVal) {
         try {
             return jo.get(name).getAsString();

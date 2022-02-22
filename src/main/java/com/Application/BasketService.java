@@ -42,7 +42,7 @@ public class BasketService {
     }
 
     public void login(User user) {
-        log.info("> Service login");
+        log.info("> Service login with userId {}", user.getUserId());
         Basket basket = new Basket();
         basket.setUserId(user.getUserId());
         basket.setProductList(new LinkedList<>());
@@ -50,12 +50,12 @@ public class BasketService {
         log.info("< Service login");
     }
     public RestError adding(Product product, Integer weight, Basket basket){
-        log.info("> Service adding");
+        log.info("> Service adding with productId {}, weight {}, basketId {}", product.getProductId(), weight, basket.getBaskedId());
         int difWeight = product.getWeight() - weight;
         if (difWeight < 0) {
             log.error("Вес товара превышает запас на " + abs(difWeight));
             log.info("< Service adding");
-            return new RestError(4," Перевес", "Вес товара превышает запас на " + abs(difWeight),HttpStatus.BAD_REQUEST);
+            return new RestError(4," Вес товара превышает запас на " , abs(difWeight),HttpStatus.BAD_REQUEST);
         }
         if(product.getAvailability()){
             List<ProductItem> productList = basket.getProductList();
@@ -80,14 +80,14 @@ public class BasketService {
             log.info("< Service adding");
             return new RestError(count, HttpStatus.OK);
         } else {
-            log.error("Товар закончился!");
+            log.error("Товар закончился! productId {}", product.getProductId());
             log.info("< Service adding");
-            return new RestError(6,"Товар закончился!","Товар закончился!", HttpStatus.BAD_REQUEST);
+            return new RestError(6,"Товар закончился!", HttpStatus.BAD_REQUEST);
         }
     }
 
     public boolean checkAge(Basket basket) {
-        log.info("> Service checkAge");
+        log.info("> Service checkAge with userId {}", basket.getUserId());
         boolean allowed = true;
         Date date = basket.getUser().getBirthday();
         if(date == null){
@@ -121,7 +121,7 @@ public class BasketService {
         } else {
             log.error("Недостаточно средств на карте!");
             log.info("< Service checking");
-            return new RestError(9,"Not enough money","Not enough money ",HttpStatus.BAD_REQUEST);
+            return new RestError(9,"Not enough money",HttpStatus.BAD_REQUEST);
         }
         log.info("Продукты изменены в базе!");
         RestError re = new RestError();
@@ -158,7 +158,7 @@ public class BasketService {
     }
 
     public void cleanBasket(Basket basket) {
-        log.info("> Service cleanBasket");
+        log.info("> Service cleanBasket with userId {}", basket.getUserId());
         basket.setProductList(new LinkedList<>());
         log.info("Корзина очищена!");
         basketRepo.save(basket);
@@ -166,24 +166,21 @@ public class BasketService {
     }
 
     public RestError removingByNum(Product product, Basket basket, Integer weight) {
-        log.info("> Service removingByNum");
+        log.info("> Service removingByNum productId {}, basketId {}, weight {}", product.getProductId(), basket.getBaskedId(), weight);
         List<ProductItem> productList = basket.getProductList();
         ProductItem item = productList.stream().filter(productItem -> productItem.getProductId().equals(product.getProductId())).findFirst().orElse(null);
-        int newWeight = 0;
-        if (item != null) {
-            newWeight = item.getWeight() - weight;
-            if (newWeight > 0){
-                item.setWeight(newWeight);
-                productItemRepo.save(item);
-            } else {
-                // если пользователь ввел меньше чем у него было в корзине, то продукт удаляется
-                productList.remove(item);
-                basket.setProductList(productList);
-            }
-            basketRepo.save(basket);
+
+        int newWeight = item.getWeight() - weight;
+        if (newWeight > 0){
+            item.setWeight(newWeight);
+            productItemRepo.save(item);
         } else {
-            return  new RestError(15,"UnexpectedError",HttpStatus.BAD_REQUEST);
+            // если пользователь ввел меньше чем у него было в корзине, то продукт удаляется
+            productList.remove(item);
+            basket.setProductList(productList);
         }
+        basketRepo.save(basket);
+
         Integer count = productList.size();
         log.info("< removingByNum");
         return new RestError(count,HttpStatus.OK);

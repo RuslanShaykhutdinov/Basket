@@ -53,6 +53,14 @@ public class RestError {
         this.data = data;
     }
 
+    public HttpStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(HttpStatus status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         return "RestError{" +

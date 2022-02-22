@@ -45,3 +45,10 @@ CREATE TABLE if NOT EXISTS product_item(
     weight INTEGER NOT NULL,
     image_url VARCHAR(100) NOT NULL
 );
+
+CREATE TABLE if NOT EXISTS errors(
+    error_id BIGSERIAL PRIMARY KEY ,
+    error_num INTEGER NOT NULL,
+    lang VARCHAR (10) NOT NULL,
+    message VARCHAR (100) NOT NULL
+);
