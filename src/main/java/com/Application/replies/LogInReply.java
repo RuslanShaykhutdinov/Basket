@@ -7,7 +7,7 @@ public class LogInReply {
 
     public LogInReply(GetInfoReply getInfoReply, Boolean addInfo) {
         this.getInfoReply = getInfoReply;
-        this.addInfo = addInfo;
+        this.addInfo = addInfo; // Флаг, что пользователю надо показать заполнение инфо
     }
 
     public GetInfoReply getGetInfoReply() {

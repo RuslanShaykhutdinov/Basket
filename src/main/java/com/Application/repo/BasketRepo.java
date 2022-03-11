@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Repository
@@ -16,7 +16,7 @@ public interface BasketRepo extends CrudRepository<Basket,Long>  {
     Optional<Basket> findByUserId(Long userId);
 
     @Query("SELECT b.productList FROM Basket b WHERE b.userId = ?1")
-    List<ProductItem> getProductListById(Long userId);
+    ArrayList<ProductItem> getProductListById(Long userId);
 
 }
 

@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Repository
@@ -14,11 +14,11 @@ public interface ProductRepo extends CrudRepository<Product,Long> {
     Optional <Product> findProduct(Long getProductId);
 
     @Query("SELECT p FROM Product p WHERE p.weight > 0")
-    List<Product> findAllAvailable();
+    ArrayList<Product> findAllAvailable();
 
     @Query("SELECT p FROM Product p WHERE p.name = ?1")
     Product findByName(String name);
 
     @Query("SELECT p FROM Product p WHERE p.categoryId = ?1")
-    List<Product> findByCategory(Long categoryId);
+    ArrayList<Product> findByCategory(Long categoryId);
 }

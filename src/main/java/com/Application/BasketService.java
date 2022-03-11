@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 import static java.lang.Math.abs;
@@ -45,7 +45,7 @@ public class BasketService {
         log.info("> Service login with userId {}", user.getUserId());
         Basket basket = new Basket();
         basket.setUserId(user.getUserId());
-        basket.setProductList(new LinkedList<>());
+        basket.setProductList(new ArrayList<>());
         basketRepo.save(basket);
         log.info("< Service login");
     }
@@ -110,7 +110,7 @@ public class BasketService {
 //    }
 
     public RestError checking(Card card, Basket basket) {
-        log.info("> Service checking");
+        log.info("> Service checking cardId {}, basketId {}", card.getCardId(), basket.getBaskedId());
         List<ProductItem> productList = basket.getProductList();
         int sum = findFullPrice(productList);
         int remainder = card.getAmountOfMoney();
@@ -133,13 +133,14 @@ public class BasketService {
     }
 
     public void changeProducts(ProductItem item) {
-        log.info("> Service changeProducts");
+        log.info("> Service changeProducts productId {}", item.getProductId());
         Product product = productRepo.findByName(item.getName());
         int newWeight = product.getWeight() - item.getWeight();
         product.setWeight(newWeight);
         if(newWeight <= 0){
             product.setAvailability(false);
             Iterable<Basket> baskets = basketRepo.findAll();
+            // удаляем закончившийся продукт из всех корзин
             baskets.forEach(basket -> basket.getProductList().remove(item));
             basketRepo.saveAll(baskets);
         }
@@ -159,7 +160,7 @@ public class BasketService {
 
     public void cleanBasket(Basket basket) {
         log.info("> Service cleanBasket with userId {}", basket.getUserId());
-        basket.setProductList(new LinkedList<>());
+        basket.setProductList(new ArrayList<>());
         log.info("Корзина очищена!");
         basketRepo.save(basket);
         log.info("< Service cleanBasket");

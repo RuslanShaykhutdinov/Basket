@@ -33,6 +33,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -72,14 +74,16 @@ public class BasketController {
         this.errorRepo = errorRepo;
     }
 
-    //Метод авторизации пользователя
+    /**
+     * Метод авторизации пользователя
+     */
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     private RestError logIn(
             HttpServletRequest request,
             @RequestBody String json
     ){
-        log.info("> login");
+        log.info("> login " + json);
 
         String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
 
@@ -104,67 +108,74 @@ public class BasketController {
         // Флаг, что пользователю надо показать заполнение инфо
         boolean addInfo = false;
 
+        GetInfoReply getInfoReply = new GetInfoReply();
+
         if (user == null){
-            log.warn("Пользователь с таким логином {} не найден!", logIn);
+            log.warn("Пользователь с логином={} не найден!", logIn);
             user = new User();
             user.setLogin(logIn);
             user.setPassword(bCryptPasswordEncoder.encode(password));
             userRepo.save(user);
+
             basketService.login(user);
-            addInfo = true;
+            log.info("Новый пользователь создан userId={}", user.getUserId());
+            log.info("< login");
+            return new RestError(new LogInReply(getInfoReply, true), HttpStatus.OK);
         } else {
             boolean passwordOK = true;
-            user.setPasswordCheck(user.getPasswordCheck() + 1);
-            userRepo.save(user);
+            int passCheckCnt = user.getPasswordCheck() + 1;
 
-            if(!bCryptPasswordEncoder.matches(password,user.getPassword())){
+            if(!bCryptPasswordEncoder.matches(password, user.getPassword())){
                 passwordOK = false;
-                log.warn("Неверный пароль");
+                user.setPasswordCheck(passCheckCnt);
+                userRepo.save(user);
             }
 
             if(!passwordOK){
-                if (user.getPasswordCheck() >= 3){
-                    log.error("Аккаунт заблокирован");
+                if (passCheckCnt >= 3){
+                    log.error("Аккаунт заблокирован " + user.getUserId());
                     user.setBlocked(true);
                     userRepo.save(user);
                     log.info("< login");
                     error = errorRepo.getByErrorNumAndLanguage(11, lang);
                     return new RestError(11, error.getMessage(), HttpStatus.BAD_REQUEST);
                 }
-                if (user.getPasswordCheck() == 2){
+                if (passCheckCnt == 2){
                     log.warn("Последняя попытка");
                     log.info("< login");
                     error = errorRepo.getByErrorNumAndLanguage(12, lang);
                     return new RestError(12, error.getMessage(),HttpStatus.BAD_REQUEST);
                 }
                 error = errorRepo.getByErrorNumAndLanguage(10, lang);
+                log.warn("Неверный пароль");
+                log.info("< login");
                 return new RestError(10,error.getMessage(),HttpStatus.BAD_REQUEST);
-            } else {
-                user.setPasswordCheck(0);
-                userRepo.save(user);
             }
-        }
 
-        GetInfoReply getInfoReply = new GetInfoReply();
-        if (user.getName() != null  && user.getLastName() != null && user.getBirthday() != null){
-            getInfoReply.setName(user.getName());
-            getInfoReply.setLastName(user.getLastName());
-            getInfoReply.setBirthDay(user.getBirthday());
-            getInfoReply.setSmileImage(true);
-        }
+            if (user.getName() != null  && user.getLastName() != null && user.getBirthday() != null){
+                getInfoReply.setName(user.getName());
+                getInfoReply.setLastName(user.getLastName());
+                getInfoReply.setBirthDay(user.getBirthday());
+                getInfoReply.setSmileImage(true);
+            } else {
+                addInfo = true;
+            }
 
-        log.info("< login");
-        return new RestError(new LogInReply(getInfoReply,addInfo), HttpStatus.OK);
+            log.info("< login");
+            return new RestError(new LogInReply(getInfoReply,addInfo), HttpStatus.OK);
+        }
     }
 
-    //Метод добавление товара пользователя по ID
+    /**
+     * Метод добавление товара
+     */
 
     @RequestMapping(value = "/addToBasket", method = RequestMethod.POST)
     private RestError addItemToBasket(
             HttpServletRequest request,
             @RequestBody String json
     ){
-        log.info("> addToBasket");
+        log.info("> addToBasket" + json);
 
         String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
 
@@ -192,21 +203,21 @@ public class BasketController {
         Product product = productRepo.findProduct(productId).orElse(null);
 
         if (basket == null){
-            log.error("Корзина с таким userId {} не найдена!", userId);
+            log.error("Корзина с userId={} не найдена!", userId);
             log.info("< addToBasket");
             error = errorRepo.getByErrorNumAndLanguage(2, lang);
             return new RestError(2, error.getMessage(),HttpStatus.BAD_REQUEST);
         }
 
         if (product == null){
-            log.error("Продукт с таким productId {} не найден! ", productId);
+            log.error("Продукт c productId={} не найден! ", productId);
             log.info("< addToBasket");
             error = errorRepo.getByErrorNumAndLanguage(3, lang);
             return  new RestError(3,error.getMessage(),HttpStatus.BAD_REQUEST);
         }
 
         if (weight > product.getWeight()){
-            log.error("Недостаточно товара на складе! productId {}", productId);
+            log.error("Недостаточно товара на складе! productId={}", productId);
             log.info("< addToBasket");
             error = errorRepo.getByErrorNumAndLanguage(14, lang);
             return  new RestError(14,error.getMessage(), HttpStatus.BAD_REQUEST);
@@ -214,7 +225,7 @@ public class BasketController {
 
         if(Objects.equals(product.getProductId(), ALCOHOL_ITEM)){
             if(!basketService.checkAge(basket)){
-                log.error("Товар не разрешен! userId {}", userId);
+                log.error("Товар не разрешен! userId={}", userId);
                 log.info("< addToBasket");
                 error = errorRepo.getByErrorNumAndLanguage(5, lang);
                 return new RestError(5,error.getMessage(), HttpStatus.BAD_REQUEST);
@@ -237,14 +248,16 @@ public class BasketController {
         return re;
     }
 
-    //Метод вывода чека
+    /**
+     * Метод вывода чека
+     */
 
     @RequestMapping(value = "/buyList",method = RequestMethod.GET)
     private RestError buyList(
             HttpServletRequest request,
             @RequestParam(name = "userId") Long userId
     ){
-        log.info("> buyList userId {}", userId);
+        log.info("> buyList userId={}", userId);
 
         String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
 
@@ -268,14 +281,16 @@ public class BasketController {
         return new RestError(new BuyListReply(productList,fullPrice), HttpStatus.OK);
     }
 
-    //Метод удаления списка покупок
-
+    /**
+     * Метод удаления списка покупок
+     */
+    @Deprecated
     @RequestMapping(value = "/deleteList",method = RequestMethod.DELETE)
     private RestError deleteList(
             HttpServletRequest request,
             @RequestParam(name = "userId") Long userId
     ){
-        log.info("> deleteList userId {}", userId );
+        log.info("> deleteList userId={}", userId );
 
         String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
 
@@ -288,7 +303,7 @@ public class BasketController {
         Basket basket = basketRepo.findByUserId(userId).orElse(null);
 
         if(basket == null){
-            log.error("Корзина с таким userId {} не найдена!", userId);
+            log.error("Корзина с userId={} не найдена!", userId);
             log.info("< deleteList");
             Error error = errorRepo.getByErrorNumAndLanguage(2, lang);
             return new RestError(2, error.getMessage(), HttpStatus.BAD_REQUEST);
@@ -296,33 +311,12 @@ public class BasketController {
 
         basketService.cleanBasket(basket);
         log.info("< deleteList");
-        return new RestError("Корзина очищена!", HttpStatus.OK); //TODO уточнить У Нурлана почему такой ответ
+        return new RestError("Корзина очищена!", HttpStatus.OK);
     }
 
-    //Метод удаления товара пользователя по ID
-
-//    @RequestMapping(value = "/removeFromBasket",method = RequestMethod.DELETE)
-//    private RestError removeFromBasket(
-//            @RequestParam(name = "productId") Long productId,
-//            @RequestParam(name = "userId") Long userId
-//    ){
-//        log.info("> removeFromBasket");
-//        Basket basket = basketRepo.findByUserId(userId).orElse(null);
-//        Product product = productRepo.findById(productId).orElse(null);
-//        if(basket == null){
-//            log.error("Пользователь с таким id " + userId + "не найден / basket not found");
-//            log.info("< removeFromBasket");
-//            return new RestError(2, "Basket not found in Base / user not found",HttpStatus.BAD_REQUEST);
-//        }
-//        if (product == null){
-//            log.info("Продукт не найден в базе! Введенный id " + productId);
-//            log.info("< removeFromBasket");
-//            return  new RestError(3,"Product not found / wrong id",HttpStatus.BAD_REQUEST);
-//        }
-//        RestError re = basketService.removing(product,basket);
-//        log.info("< removeFromBasket");
-//        return re;
-//    }
+    /**
+     * Метод удаления продуктов из корзины по количеству.
+     */
 
     @RequestMapping(value = "/removeFromBasketByNumber", method = RequestMethod.DELETE)
     private RestError removeFromBasketByNumber(
@@ -331,7 +325,7 @@ public class BasketController {
             @RequestParam(name = "userId") Long userId,
             @RequestParam(name = "weight") Integer weight
     ){
-        log.info("> removeFromBasketByNumber userId {}, productId {}, weight {}", userId, productId, weight);
+        log.info("> removeFromBasketByNumber userId={}, productId={}, weight={}", userId, productId, weight);
 
         String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
 
@@ -346,14 +340,14 @@ public class BasketController {
         Error error = null;
 
         if (product == null){
-            log.error("Продукт с таким productId {} не найден! ", productId);
+            log.error("Продукт с productId={} не найден! ", productId);
             log.info("< removeFromBasketByNumber");
             error = errorRepo.getByErrorNumAndLanguage(3, lang);
             return  new RestError(3,error.getMessage(),HttpStatus.BAD_REQUEST);
         }
 
         if(basket == null){
-            log.error("Корзина с таким userId {} не найдена!", userId);
+            log.error("Корзина с userId={} не найдена!", userId);
             log.info("< removeFromBasketByNumber");
             error = errorRepo.getByErrorNumAndLanguage(2, lang);
             return new RestError(2, error.getMessage(),HttpStatus.BAD_REQUEST);
@@ -365,32 +359,36 @@ public class BasketController {
         return re;
     }
 
-    //Метод вывода всего доступного товара
+    /**
+     * Метод вывода всего доступного товара
+     */
 
     @RequestMapping(value = "/allProducts",method = RequestMethod.GET)
     private RestError allProducts(){
 
         log.info(" < allProducts");
 
-        List<Product> productList = productRepo.findAllAvailable();
+        ArrayList<Product> productList = productRepo.findAllAvailable();
 
         log.info("> allProducts");
 
         return new RestError(productList,HttpStatus.OK);
     }
 
-    //Метод вывода категорий
+    /**
+     * Метод вывода категорий
+     */
 
     @RequestMapping(value = "/getCategories", method = RequestMethod.GET)
     private RestError getCategories(){
         log.info("> getCategories");
-        List<Product> fruits = productRepo.findByCategory(Categories.FRUITS.getCategory());
-        List<Product> vegetables = productRepo.findByCategory(Categories.VEGETABLES.getCategory());
-        List<Product> dairies = productRepo.findByCategory(Categories.DAIRIES.getCategory());
-        List<Product> drinks = productRepo.findByCategory(Categories.DRINKS.getCategory());
-        List<Product> meats = productRepo.findByCategory(Categories.MEATS.getCategory());
-        List<Product> sweets = productRepo.findByCategory(Categories.SWEETS.getCategory());
-        List<Product> bakeries = productRepo.findByCategory(Categories.BAKERIES.getCategory());
+        ArrayList<Product> fruits = productRepo.findByCategory(Categories.FRUITS.getCategory());
+        ArrayList<Product> vegetables = productRepo.findByCategory(Categories.VEGETABLES.getCategory());
+        ArrayList<Product> dairies = productRepo.findByCategory(Categories.DAIRIES.getCategory());
+        ArrayList<Product> drinks = productRepo.findByCategory(Categories.DRINKS.getCategory());
+        ArrayList<Product> meats = productRepo.findByCategory(Categories.MEATS.getCategory());
+        ArrayList<Product> sweets = productRepo.findByCategory(Categories.SWEETS.getCategory());
+        ArrayList<Product> bakeries = productRepo.findByCategory(Categories.BAKERIES.getCategory());
 
         CategoryReply fruitReply = new CategoryReply(Categories.FRUITS.getName(), fruits);
         CategoryReply vegetableReply = new CategoryReply(Categories.VEGETABLES.getName(), vegetables);
@@ -405,14 +403,16 @@ public class BasketController {
     }
 
 
-    //Метод заполнения аккаунта
+    /**
+     * Метод заполнения аккаунта
+     */
 
     @RequestMapping(value = "/addInfo", method = RequestMethod.POST)
     private RestError addInfo(
             HttpServletRequest request,
             @RequestBody String json
     ) {
-        log.info("> addInfo json{}", json);
+        log.info("> addInfo json={}", json);
 
         String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
 
@@ -444,7 +444,7 @@ public class BasketController {
         User user = userRepo.findById(userId).orElse(null);
 
         if (user == null){
-            log.error("Пользователь с таким userId {} не найден! ", userId);
+            log.error("Пользователь с userId={} не найден! ", userId);
             log.info("< addInfo");
             Error error = errorRepo.getByErrorNumAndLanguage(1, lang);
             return new RestError(1,error.getMessage(),HttpStatus.BAD_REQUEST);
@@ -452,37 +452,36 @@ public class BasketController {
 
         user.setName(name);
         user.setLastName(lastName);
+        Date bDay = null;
         try {
-            user.setBirthday(Utils.format.parse(date));
+             bDay = Utils.format.parse(date);
         } catch (ParseException e) {
-            log.error("error {}", e.getMessage());
+            log.error("error={}", e.getMessage());
             e.printStackTrace();
         }
+        log.info(bDay.toString());
+        user.setBirthday(bDay);
         user.setUserInfo(userInfo);
         user.setSex(sex);
         userRepo.save(user);
 
-        GetInfoReply gir = new GetInfoReply(name,lastName);
-        try {
-            gir.setBirthDay(Utils.format.parse(date));
-        } catch (ParseException e) {
-            log.error("error {}", e.getMessage());
-            e.printStackTrace();
-        }
+        GetInfoReply gir = new GetInfoReply(name, lastName, bDay);
         gir.setSmileImage(true);
 
         log.info("< addInfo");
         return new RestError(gir,HttpStatus.OK);
     }
 
-    //Метод создания карты пользователю
+    /**
+     * Метод создания карты пользователю
+     */
 
     @RequestMapping(value = "/createCard",method = RequestMethod.POST)
     private RestError createCard(
             HttpServletRequest request,
             @RequestBody String json
     ){
-        log.info("> createCard");
+        log.info("> createCard json={}", json);
 
         String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
 
@@ -506,14 +505,14 @@ public class BasketController {
         User user = userRepo.findById(userId).orElse(null);
 
         if (user == null){
-            log.error("Пользователь с таким userId {} не найден! ", userId);
+            log.error("Пользователь с userId={} не найден! ", userId);
             log.info("< createCard");
             error = errorRepo.getByErrorNumAndLanguage(1, lang);
             return new RestError(1,error.getMessage(),HttpStatus.BAD_REQUEST);
         }
 
         if (card != null){
-            log.error("У пользователя c userId {} уже есть карта!", userId);
+            log.error("У пользователя c userId={} уже есть карта!", userId);
             log.info("< createCard");
             error = errorRepo.getByErrorNumAndLanguage(7, lang);
             return new RestError(7,error.getMessage(), HttpStatus.BAD_REQUEST );
@@ -524,14 +523,46 @@ public class BasketController {
         return new RestError("OK",HttpStatus.OK);
     }
 
-    //Метод списания с карты
+    /**
+     * Метод проверки баланса карты
+     */
+    @RequestMapping(value = "/getBalance", method = RequestMethod.GET)
+    private RestError balance(
+            HttpServletRequest request,
+            @RequestParam(name = "userId") Long userId
+    ){
+        log.info("> getBalance userId={}", userId);
+
+        String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
+
+        if (lang != null) {
+            ThreadLanguage.setLang(lang);
+        } else {
+            lang = "en";
+        }
+
+        Card card = cardRepo.findByUserId(userId).orElse(null);
+        if (card == null){
+            log.error("У пользователя с userId={} карта не найдена!" , userId );
+            log.info("< getBalance");
+            Error error = errorRepo.getByErrorNumAndLanguage(8, lang);
+            return new RestError(8,error.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+        log.info("< getBalance");
+        return new RestError(card.getAmountOfMoney(), HttpStatus.OK);
+    }
+
+    /**
+     * Метод списания с карты
+     */
 
     @RequestMapping(value = "/payment",method = RequestMethod.PUT)
     private RestError payment(
             HttpServletRequest request,
             @RequestBody String json
     ){
-        log.info("> payment");
+        log.info("> payment json={}", json);
 
         String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
 
@@ -557,27 +588,26 @@ public class BasketController {
         User user = userRepo.findById(userId).orElse(null);
 
         if (user == null){
-            log.error("Пользователь с таким userId {} не найден!", userId);
+            log.error("Пользователь с userId={} не найден!", userId);
             log.info("< payment");
             error = errorRepo.getByErrorNumAndLanguage(1, lang);
             return new RestError(1,error.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
         if (card == null){
-            log.error("У пользователя с таким userId {} карта не найдена!" , userId );
+            log.error("У пользователя с userId={} карта не найдена!" , userId );
             log.info("< payment");
             error = errorRepo.getByErrorNumAndLanguage(8, lang);
             return new RestError(8,error.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
         if(basket == null){
-            log.error("Корзина с таким userId {} не найдена!", userId);
+            log.error("Корзина с userId={} не найдена!", userId);
             log.info("< payment");
             error = errorRepo.getByErrorNumAndLanguage(2, lang);
             return new RestError(2, error.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
-        log.info("< payment");
         RestError serverRe = basketService.checking(card,basket);
         RestError re = null;
         if (serverRe.getError() != 0){
@@ -586,10 +616,13 @@ public class BasketController {
         } else {
             re = new RestError(serverRe.getData(), HttpStatus.OK);
         }
+        log.info("< payment");
         return re;
     }
 
-    // Метод вывода картинки продукта
+    /**
+     * Метод вывода картинки продукта
+     */
 
     @RequestMapping(value = "/get-image/{imgFileName}", method = RequestMethod.GET)
     public RestError getImage(

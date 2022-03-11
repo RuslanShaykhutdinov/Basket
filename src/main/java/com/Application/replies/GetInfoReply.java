@@ -11,10 +11,10 @@ public class GetInfoReply {
     public GetInfoReply() {
     }
 
-    public GetInfoReply(String name, String lastName) {
+    public GetInfoReply(String name, String lastName, Date birthDay) {
         this.name = name;
         this.lastName = lastName;
-        this.smileImage = false;
+        this.birthDay = birthDay;
     }
 
     public String getName() {

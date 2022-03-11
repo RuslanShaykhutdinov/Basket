@@ -18,7 +18,7 @@ CREATE TABLE if NOT EXISTS users(
     name VARCHAR(25),
     sex VARCHAR (25),
     last_name VARCHAR(25),
-    birthday DATE,
+    birthday timestamp,
     user_info VARCHAR(200),
     password_check INTEGER,
     blocked BOOLEAN NOT NULL
