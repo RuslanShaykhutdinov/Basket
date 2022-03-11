@@ -42,7 +42,7 @@ public class BasketService {
     }
 
     public void login(User user) {
-        log.info("> Service login with userId {}", user.getUserId());
+        log.info("> Service login with userId={}", user.getUserId());
         Basket basket = new Basket();
         basket.setUserId(user.getUserId());
         basket.setProductList(new ArrayList<>());
@@ -50,7 +50,7 @@ public class BasketService {
         log.info("< Service login");
     }
     public RestError adding(Product product, Integer weight, Basket basket){
-        log.info("> Service adding with productId {}, weight {}, basketId {}", product.getProductId(), weight, basket.getBaskedId());
+        log.info("> Service adding with productId={}, weight={}, basketId={}", product.getProductId(), weight, basket.getBaskedId());
         int difWeight = product.getWeight() - weight;
         if (difWeight < 0) {
             log.error("Вес товара превышает запас на " + abs(difWeight));
@@ -80,14 +80,14 @@ public class BasketService {
             log.info("< Service adding");
             return new RestError(count, HttpStatus.OK);
         } else {
-            log.error("Товар закончился! productId {}", product.getProductId());
+            log.error("Товар закончился! productId={}", product.getProductId());
             log.info("< Service adding");
             return new RestError(6,"Товар закончился!", HttpStatus.BAD_REQUEST);
         }
     }
 
     public boolean checkAge(Basket basket) {
-        log.info("> Service checkAge with userId {}", basket.getUserId());
+        log.info("> Service checkAge with userId={}", basket.getUserId());
         boolean allowed = true;
         Date date = basket.getUser().getBirthday();
         if(date == null){
@@ -101,16 +101,8 @@ public class BasketService {
         return  allowed;
     }
 
-//    public RestError removing(Product product, Basket basket) {
-//        log.info("> Service removing");
-//        basket.setProductList(basket.getProductList().stream().filter(productItem -> !productItem.getName().equals(product.getName())).collect(Collectors.toList()));
-//        basketRepo.save(basket);
-//        log.info("< Service removing");
-//        return new RestError("Продукт " + product.getName() + " успешно удален из вашего списка покупок!",HttpStatus.OK);
-//    }
-
     public RestError checking(Card card, Basket basket) {
-        log.info("> Service checking cardId {}, basketId {}", card.getCardId(), basket.getBaskedId());
+        log.info("> Service checking cardId={}, basketId={}", card.getCardId(), basket.getBaskedId());
         List<ProductItem> productList = basket.getProductList();
         int sum = findFullPrice(productList);
         int remainder = card.getAmountOfMoney();
@@ -133,7 +125,7 @@ public class BasketService {
     }
 
     public void changeProducts(ProductItem item) {
-        log.info("> Service changeProducts productId {}", item.getProductId());
+        log.info("> Service changeProducts productId={}", item.getProductId());
         Product product = productRepo.findByName(item.getName());
         int newWeight = product.getWeight() - item.getWeight();
         product.setWeight(newWeight);
@@ -167,7 +159,7 @@ public class BasketService {
     }
 
     public RestError removingByNum(Product product, Basket basket, Integer weight) {
-        log.info("> Service removingByNum productId {}, basketId {}, weight {}", product.getProductId(), basket.getBaskedId(), weight);
+        log.info("> Service removingByNum productId={}, basketId={}, weight={}", product.getProductId(), basket.getBaskedId(), weight);
         List<ProductItem> productList = basket.getProductList();
         ProductItem item = productList.stream().filter(productItem -> productItem.getProductId().equals(product.getProductId())).findFirst().orElse(null);
 

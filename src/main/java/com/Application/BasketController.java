@@ -118,6 +118,7 @@ public class BasketController {
             userRepo.save(user);
 
             basketService.login(user);
+            getInfoReply.setUserId(user.getUserId());
             log.info("Новый пользователь создан userId={}", user.getUserId());
             log.info("< login");
             return new RestError(new LogInReply(getInfoReply, true), HttpStatus.OK);
@@ -160,6 +161,7 @@ public class BasketController {
             } else {
                 addInfo = true;
             }
+            getInfoReply.setUserId(user.getUserId());
 
             log.info("< login");
             return new RestError(new LogInReply(getInfoReply,addInfo), HttpStatus.OK);
@@ -459,7 +461,6 @@ public class BasketController {
             log.error("error={}", e.getMessage());
             e.printStackTrace();
         }
-        log.info(bDay.toString());
         user.setBirthday(bDay);
         user.setUserInfo(userInfo);
         user.setSex(sex);

@@ -3,6 +3,7 @@ package com.Application.replies;
 import java.util.Date;
 
 public class GetInfoReply {
+    private Long userId;
     private String name;
     private String lastName;
     private Date birthDay;
@@ -15,6 +16,14 @@ public class GetInfoReply {
         this.name = name;
         this.lastName = lastName;
         this.birthDay = birthDay;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getName() {
@@ -52,9 +61,10 @@ public class GetInfoReply {
     @Override
     public String toString() {
         return "GetInfoReply{" +
-                "name='" + name + '\'' +
+                "userId=" + userId +
+                ", name='" + name + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", birthDay='" + birthDay + '\'' +
+                ", birthDay=" + birthDay +
                 ", smileImage=" + smileImage +
                 '}';
     }
