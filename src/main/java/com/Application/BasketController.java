@@ -162,9 +162,16 @@ public class BasketController {
                 addInfo = true;
             }
             getInfoReply.setUserId(user.getUserId());
-
+            Integer count = null;
+            Basket basket = basketRepo.findByUserId(user.getUserId()).orElse(null);
+            if (basket != null) {
+                List<ProductItem> productList = basket.getProductList();
+                count = productList.size();
+            } else {
+                count = 0;
+            }
             log.info("< login");
-            return new RestError(new LogInReply(getInfoReply,addInfo), HttpStatus.OK);
+            return new RestError(new LogInReply(getInfoReply,addInfo, count), HttpStatus.OK);
         }
     }
 
@@ -271,13 +278,6 @@ public class BasketController {
 
         List <ProductItem> productList = basketRepo.getProductListById(userId);
 
-        if (productList.isEmpty()){
-            log.error("Список продуктов пуст!");
-            log.info("< buyList");
-            Error error = errorRepo.getByErrorNumAndLanguage(13, lang);
-            return new RestError(13,error.getMessage(),HttpStatus.BAD_REQUEST);
-        }
-
         Integer fullPrice = basketService.findFullPrice(productList);
         log.info("< buyList");
         return new RestError(new BuyListReply(productList,fullPrice), HttpStatus.OK);
@@ -382,8 +382,19 @@ public class BasketController {
      */
 
     @RequestMapping(value = "/getCategories", method = RequestMethod.GET)
-    private RestError getCategories(){
+    private RestError getCategories(
+            HttpServletRequest request
+    ){
         log.info("> getCategories");
+
+        String lang = request.getHeader(HEADER_ACCEPT_LANGUAGE);
+
+        if (lang != null) {
+            ThreadLanguage.setLang(lang);
+        } else {
+            lang = "en";
+        }
+
         ArrayList<Product> fruits = productRepo.findByCategory(Categories.FRUITS.getCategory());
         ArrayList<Product> vegetables = productRepo.findByCategory(Categories.VEGETABLES.getCategory());
         ArrayList<Product> dairies = productRepo.findByCategory(Categories.DAIRIES.getCategory());
