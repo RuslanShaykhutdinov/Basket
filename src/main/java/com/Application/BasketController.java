@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,7 +80,7 @@ public class BasketController {
      */
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    private RestError logIn(
+    private ResponseEntity<String> logIn(
             HttpServletRequest request,
             @RequestBody String json
     ){
@@ -121,7 +122,9 @@ public class BasketController {
             getInfoReply.setUserId(user.getUserId());
             log.info("Новый пользователь создан userId={}", user.getUserId());
             log.info("< login");
-            return new RestError(new LogInReply(getInfoReply, true), HttpStatus.OK);
+            RestError re = new RestError();
+            re.setData(new LogInReply(getInfoReply, true));
+            return createResponse(re);
         } else {
             boolean passwordOK = true;
             int passCheckCnt = user.getPasswordCheck() + 1;
@@ -139,18 +142,18 @@ public class BasketController {
                     userRepo.save(user);
                     log.info("< login");
                     error = errorRepo.getByErrorNumAndLanguage(11, lang);
-                    return new RestError(11, error.getMessage(), HttpStatus.BAD_REQUEST);
+                    return createResponse(new RestError(11, error.getMessage()));
                 }
                 if (passCheckCnt == 2){
                     log.warn("Последняя попытка");
                     log.info("< login");
                     error = errorRepo.getByErrorNumAndLanguage(12, lang);
-                    return new RestError(12, error.getMessage(),HttpStatus.BAD_REQUEST);
+                    return createResponse(new RestError(12, error.getMessage()));
                 }
                 error = errorRepo.getByErrorNumAndLanguage(10, lang);
                 log.warn("Неверный пароль");
                 log.info("< login");
-                return new RestError(10,error.getMessage(),HttpStatus.BAD_REQUEST);
+                return createResponse(new RestError(10,error.getMessage()));
             }
 
             if (user.getName() != null  && user.getLastName() != null && user.getBirthday() != null){
@@ -171,7 +174,9 @@ public class BasketController {
                 count = 0;
             }
             log.info("< login");
-            return new RestError(new LogInReply(getInfoReply,addInfo, count), HttpStatus.OK);
+            RestError re = new RestError();
+            re.setData(new LogInReply(getInfoReply,addInfo, count));
+            return createResponse(re);
         }
     }
 

@@ -22,6 +22,11 @@ public class RestError {
         this.status = status;
     }
 
+    public RestError(int error, String errMessage) {
+        this.error = error;
+        this.errMessage = errMessage;
+    }
+
     public RestError(int error, String errMessage, Object data, HttpStatus status) {
         this.error = error;
         this.errMessage = errMessage;
