@@ -21,7 +21,6 @@ dependencies {
 	implementation 'org.postgresql:postgresql:42.3.1'
 	implementation 'com.google.code.gson:gson:2.8.9'
 	implementation 'commons-io:commons-io:2.5'
-	implementation 'io.gsonfire:gson-fire:1.7.1'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.6'
 }
 
