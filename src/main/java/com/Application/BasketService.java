@@ -117,7 +117,7 @@ public class BasketService {
         }
         log.info("Продукты изменены в базе!");
         RestError re = new RestError();
-        re.setData(new BuyListReply(productList,sum));
+        re.setData(new BuyListReply(productList,sum, 0));
         cleanBasket(basket);
         log.info("Оплата прошла успешно");
         log.info("< Service checking");

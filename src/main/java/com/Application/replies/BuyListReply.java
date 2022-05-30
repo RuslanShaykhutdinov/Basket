@@ -1,6 +1,7 @@
 package com.Application.replies;
 
 import com.Application.dto.ProductItem;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -8,9 +9,18 @@ public class BuyListReply {
     private List<ProductItem> productList;
     private Integer fullPrice;
 
+    @Value("0")
+    private Integer count;
+
     public BuyListReply(List<ProductItem> productList, Integer fullPrice) {
         this.productList = productList;
         this.fullPrice = fullPrice;
+    }
+
+    public BuyListReply(List<ProductItem> productList, Integer fullPrice, int count) {
+        this.productList = productList;
+        this.fullPrice = fullPrice;
+        this.count = count;
     }
 
     public List<ProductItem> getProductList() {
