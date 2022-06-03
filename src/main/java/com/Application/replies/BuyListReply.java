@@ -8,8 +8,6 @@ import java.util.List;
 public class BuyListReply {
     private List<ProductItem> productList;
     private Integer fullPrice;
-
-    @Value("0")
     private Integer count;
 
     public BuyListReply(List<ProductItem> productList, Integer fullPrice) {
@@ -39,6 +37,13 @@ public class BuyListReply {
         this.fullPrice = fullPrice;
     }
 
+    public Integer getCount() {
+        return count;
+    }
+
+    public void setCount(Integer count) {
+        this.count = count;
+    }
 
     @Override
     public String toString() {
