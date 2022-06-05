@@ -144,7 +144,7 @@ public class BasketService {
         log.info("> Service findFullPrice");
         int fullPrice = INITIAL_SUM;
         for (ProductItem product: productList) {
-            fullPrice += product.getPrice() * product.getWeight();
+            fullPrice += product.getPrice();
         }
         log.info("< Service findFullPrice");
         return fullPrice;
@@ -166,6 +166,7 @@ public class BasketService {
         int newWeight = item.getWeight() - weight;
         if (newWeight > 0){
             item.setWeight(newWeight);
+            item.setPrice(product.getPrice() * newWeight);
             productItemRepo.save(item);
         } else {
             // если пользователь ввел меньше чем у него было в корзине, то продукт удаляется
