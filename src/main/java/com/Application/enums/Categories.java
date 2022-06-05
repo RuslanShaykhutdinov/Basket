@@ -8,8 +8,15 @@ public enum Categories {
         }
 
         @Override
-        public String getName() {
-            return "Fruits";
+        public String getName(String lang) {
+            switch (lang){
+                case "ru":
+                    return "Фрукты";
+                case "uz":
+                    return "Mevalar";
+                default:
+                    return "Fruits";
+            }
         }
     },
     VEGETABLES {
@@ -19,8 +26,15 @@ public enum Categories {
         }
 
         @Override
-        public String getName() {
-            return "Vegetables";
+        public String getName(String lang) {
+            switch (lang){
+                case "ru":
+                    return "Овощи";
+                case "uz":
+                    return "Sabzavotlar";
+                default:
+                    return "Vegetables";
+            }
         }
     },
     DAIRIES {
@@ -29,9 +43,15 @@ public enum Categories {
             return 3L;
         }
 
-        @Override
-        public String getName() {
-            return "Dairies";
+        public String getName(String lang) {
+            switch (lang){
+                case "ru":
+                    return "Молочные продукты";
+                case "uz":
+                    return "Sutli mahsulotlar";
+                default:
+                    return "Dairies";
+            }
         }
     },
     DRINKS {
@@ -40,9 +60,15 @@ public enum Categories {
             return 4L;
         }
 
-        @Override
-        public String getName() {
-            return "Drinks";
+        public String getName(String lang) {
+            switch (lang){
+                case "ru":
+                    return "Напитки";
+                case "uz":
+                    return "Ichilimliklar";
+                default:
+                    return "Drinks";
+            }
         }
     },
     MEATS {
@@ -51,9 +77,15 @@ public enum Categories {
             return 5L;
         }
 
-        @Override
-        public String getName() {
-            return "Meats";
+        public String getName(String lang) {
+            switch (lang){
+                case "ru":
+                    return "Мясные изделия";
+                case "uz":
+                    return "Go'sht mahsulotlari";
+                default:
+                    return "Meats";
+            }
         }
     },
     SWEETS{
@@ -62,9 +94,15 @@ public enum Categories {
             return 6L;
         }
 
-        @Override
-        public String getName() {
-            return "Sweets";
+        public String getName(String lang) {
+            switch (lang){
+                case "ru":
+                    return "Сладости";
+                case "uz":
+                    return "Shirinliklar";
+                default:
+                    return "Candies";
+            }
         }
     },
     BAKERIES{
@@ -73,12 +111,18 @@ public enum Categories {
             return 7L;
         }
 
-        @Override
-        public String getName() {
-            return "Bakeries";
+        public String getName(String lang) {
+            switch (lang){
+                case "ru":
+                    return "Выпечка";
+                case "uz":
+                    return "Non mahsulotlari";
+                default:
+                    return "Bakeries";
+            }
         }
     };
 
     public abstract Long getCategory();
-    public abstract String getName();
+    public abstract String getName(String lang);
 }

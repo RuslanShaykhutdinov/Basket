@@ -7,6 +7,7 @@ import com.Application.repo.CardRepo;
 import com.Application.repo.ProductItemRepo;
 import com.Application.repo.ProductRepo;
 import com.Application.settings.RestError;
+import com.Application.translations.Translation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,8 +50,9 @@ public class BasketService {
         basketRepo.save(basket);
         log.info("< Service login");
     }
-    public RestError adding(Product product, Integer weight, Basket basket){
-        log.info("> Service adding with productId={}, weight={}, basketId={}", product.getProductId(), weight, basket.getBaskedId());
+    public RestError adding(Product product, Integer weight, Basket basket, String lang){
+        Long productId = product.getProductId();
+        log.info("> Service adding with productId={}, weight={}, basketId={}, lang={}", productId, weight, basket.getBaskedId(), lang);
         int difWeight = product.getWeight() - weight;
         if (difWeight < 0) {
             log.error("Вес товара превышает запас на " + abs(difWeight));
@@ -59,11 +61,14 @@ public class BasketService {
         }
         if(product.getAvailability()){
             List<ProductItem> productList = basket.getProductList();
-            ProductItem sameProduct = productList.stream().filter(p -> p.getProductId().equals(product.getProductId())).findFirst().orElse(null);
+            ProductItem sameProduct = productList.stream().filter(p -> p.getProductId().equals(productId)).findFirst().orElse(null);
             if (sameProduct == null){
                 ProductItem item = new ProductItem();
-                item.setProductId(product.getProductId());
-                item.setName(product.getName());
+                item.setProductId(productId);
+                if (!"en".equals(lang))
+                    item.setName(Translation.productNames.get(productId + lang));
+                else
+                    item.setName(product.getName());
                 item.setPrice(product.getPrice() * weight);
                 item.setWeight(weight);
                 item.setImageUrl(product.getImageUrl());
@@ -80,7 +85,7 @@ public class BasketService {
             log.info("< Service adding");
             return new RestError(count, HttpStatus.OK);
         } else {
-            log.error("Товар закончился! productId={}", product.getProductId());
+            log.error("Товар закончился! productId={}", productId);
             log.info("< Service adding");
             return new RestError(6,"Товар закончился!", HttpStatus.BAD_REQUEST);
         }
@@ -101,7 +106,7 @@ public class BasketService {
         return  allowed;
     }
 
-    public RestError checking(Card card, Basket basket) {
+    public RestError checking(Card card, Basket basket, String lang) {
         log.info("> Service checking cardId={}, basketId={}", card.getCardId(), basket.getBaskedId());
         List<ProductItem> productList = basket.getProductList();
         int sum = findFullPrice(productList);
@@ -115,6 +120,8 @@ public class BasketService {
             log.info("< Service checking");
             return new RestError(9,"Not enough money",HttpStatus.BAD_REQUEST);
         }
+        if (!"en".equals(lang))
+            productList.forEach(p -> p.setName(Translation.productNames.get(p.getProductId()+ lang)));
         log.info("Продукты изменены в базе!");
         RestError re = new RestError();
         re.setData(new BuyListReply(productList,sum, 0));
@@ -126,7 +133,7 @@ public class BasketService {
 
     public void changeProducts(ProductItem item) {
         log.info("> Service changeProducts productId={}", item.getProductId());
-        Product product = productRepo.findByName(item.getName());
+        Product product = productRepo.findProduct(item.getProductId()).get();
         int newWeight = product.getWeight() - item.getWeight();
         product.setWeight(newWeight);
         if(newWeight <= 0){

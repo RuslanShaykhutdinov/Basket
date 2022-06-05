@@ -15,6 +15,7 @@ import com.Application.repo.UserRepo;
 import com.Application.settings.RestError;
 import com.Application.settings.ThreadLanguage;
 import com.Application.settings.Utils;
+import com.Application.translations.Translation;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.io.IOUtils;
@@ -241,7 +242,7 @@ public class BasketController {
             }
         }
 
-        RestError serviceRe = basketService.adding(product,weight,basket);
+        RestError serviceRe = basketService.adding(product,weight,basket, lang);
         RestError re = null;
         if (serviceRe.getError() != 0){
             error = errorRepo.getByErrorNumAndLanguage(serviceRe.getError(), lang);
@@ -403,13 +404,24 @@ public class BasketController {
         ArrayList<Product> sweets = productRepo.findByCategory(Categories.SWEETS.getCategory());
         ArrayList<Product> bakeries = productRepo.findByCategory(Categories.BAKERIES.getCategory());
 
-        CategoryReply fruitReply = new CategoryReply(Categories.FRUITS.getName(), fruits);
-        CategoryReply vegetableReply = new CategoryReply(Categories.VEGETABLES.getName(), vegetables);
-        CategoryReply dairiesReply = new CategoryReply(Categories.DAIRIES.getName(), dairies);
-        CategoryReply drinksReply = new CategoryReply(Categories.DRINKS.getName(), drinks);
-        CategoryReply meatsReply = new CategoryReply(Categories.MEATS.getName(), meats);
-        CategoryReply sweetsReply = new CategoryReply(Categories.SWEETS.getName(), sweets);
-        CategoryReply bakeriesReply = new CategoryReply(Categories.BAKERIES.getName(), bakeries);
+        if (!"en".equals(lang)) {
+            String finalLang = lang;
+            fruits.forEach(p -> p.setName(Translation.productNames.get(p.getProductId() + finalLang)));
+            vegetables.forEach(p -> p.setName(Translation.productNames.get(p.getProductId() + finalLang)));
+            dairies.forEach(p -> p.setName(Translation.productNames.get(p.getProductId() + finalLang)));
+            drinks.forEach(p -> p.setName(Translation.productNames.get(p.getProductId() + finalLang)));
+            meats.forEach(p -> p.setName(Translation.productNames.get(p.getProductId() + finalLang)));
+            sweets.forEach(p -> p.setName(Translation.productNames.get(p.getProductId() + finalLang)));
+            bakeries.forEach(p -> p.setName(Translation.productNames.get(p.getProductId() + finalLang)));
+        }
+
+        CategoryReply fruitReply = new CategoryReply(Categories.FRUITS.getName(lang), fruits);
+        CategoryReply vegetableReply = new CategoryReply(Categories.VEGETABLES.getName(lang), vegetables);
+        CategoryReply dairiesReply = new CategoryReply(Categories.DAIRIES.getName(lang), dairies);
+        CategoryReply drinksReply = new CategoryReply(Categories.DRINKS.getName(lang), drinks);
+        CategoryReply meatsReply = new CategoryReply(Categories.MEATS.getName(lang), meats);
+        CategoryReply sweetsReply = new CategoryReply(Categories.SWEETS.getName(lang), sweets);
+        CategoryReply bakeriesReply = new CategoryReply(Categories.BAKERIES.getName(lang), bakeries);
         Object[] data = new Object[]{fruitReply,vegetableReply,dairiesReply,drinksReply,meatsReply,sweetsReply,bakeriesReply};
         log.info("< getCategories");
         return new RestError(data, HttpStatus.OK);
@@ -620,7 +632,7 @@ public class BasketController {
             return new RestError(2, error.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
-        RestError serverRe = basketService.checking(card,basket);
+        RestError serverRe = basketService.checking(card,basket, lang);
         RestError re = null;
         if (serverRe.getError() != 0){
             error = errorRepo.getByErrorNumAndLanguage(serverRe.getError(), lang);
